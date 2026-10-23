@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Line of Balance: Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --paper:#EDF0EF; --panel:#FFFFFF; --soft:#F3F6F5; --lane:#F8FAF9;
+  --ink:#15242B; --muted:#55666E; --rule:#D2DADA; --ground:#CAD2CF;
+  --chassis:#34434B; --tire:#1E272C; --glass:#CFE3EE; --pipegrey:#AEB8BC;
+  --exc:#2F6FB5; --pipe:#2A8A55; --back:#D4701C;
+  --exc-soft:#E3EDF8; --pipe-soft:#E1F1E8; --back-soft:#FAEBDD;
+  --on-trade:#FFFFFF;
+  --bad:#C23B3B; --bad-soft:#FBE6E6; --good:#1E7B4C; --good-soft:#E2F2E9;
+  --warn:#8F6200; --warn-soft:#FBF0D6; --info-soft:#E8EFF2;
+  --flag:#F1B80C; --flag-edge:#C99700; --flag-ink:#15242B;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E171B; --panel:#162228; --soft:#1C2B32; --lane:#1A272D;
+    --ink:#E6EEF0; --muted:#9BAAB1; --rule:#2B3C44; --ground:#31424A;
+    --chassis:#8CA0AA; --tire:#0C1316; --glass:#46606E; --pipegrey:#7E8D94;
+    --exc:#5C9BE0; --pipe:#4DBE82; --back:#F09442;
+    --exc-soft:#1D3550; --pipe-soft:#1B3B2B; --back-soft:#432D17;
+    --on-trade:#0E171B;
+    --bad:#F07373; --bad-soft:#3E2022; --good:#5BD08E; --good-soft:#173325;
+    --warn:#E5B54A; --warn-soft:#3A3014; --info-soft:#1D2D35;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E171B; --panel:#162228; --soft:#1C2B32; --lane:#1A272D;
+  --ink:#E6EEF0; --muted:#9BAAB1; --rule:#2B3C44; --ground:#31424A;
+  --chassis:#8CA0AA; --tire:#0C1316; --glass:#46606E; --pipegrey:#7E8D94;
+  --exc:#5C9BE0; --pipe:#4DBE82; --back:#F09442;
+  --exc-soft:#1D3550; --pipe-soft:#1B3B2B; --back-soft:#432D17;
+  --on-trade:#0E171B;
+  --bad:#F07373; --bad-soft:#3E2022; --good:#5BD08E; --good-soft:#173325;
+  --warn:#E5B54A; --warn-soft:#3A3014; --info-soft:#1D2D35;
+}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;height:100%;background:var(--paper);color:var(--ink);font:400 15px/1.5 'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums}
+#root{height:100%}
+h1,h2,h3{font-family:'Barlow Semi Condensed','Barlow',system-ui,sans-serif;margin:0;letter-spacing:.1px}
+h1{font-size:32px;line-height:1.08;font-weight:700}
+h2{font-size:24px;line-height:1.15;font-weight:600;margin-bottom:6px}
+h3{font-size:18px;font-weight:600}
+p{margin:0}
+button{font:inherit;color:inherit}
+.muted{color:var(--muted)}
+.app{display:grid;grid-template-columns:minmax(350px,440px) 1fr;height:100%}
+.app.wide{grid-template-columns:minmax(440px,44%) 1fr}
+.left{display:flex;flex-direction:column;min-height:0;background:var(--panel);border-right:1px solid var(--rule)}
+.brand{padding:14px 18px 10px}
+.brand-title{font:700 17px 'Barlow Semi Condensed',sans-serif}
+.brand-sub{font-size:13px;color:var(--muted)}
+.tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border-bottom:1px solid var(--rule)}
+.tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;padding:9px 1px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font:500 12px 'Barlow',sans-serif;color:var(--muted)}
+.tab .dot{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:11px;font-weight:600}
+.tab.on{color:var(--ink);border-bottom-color:var(--flag)}
+.tab.done .dot{background:var(--good);border-color:var(--good);color:var(--panel)}
+.tab:disabled{opacity:.4;cursor:not-allowed}
+.tab:focus-visible,.btn:focus-visible,.btn-icon:focus-visible,.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.scroll{flex:1;overflow-y:auto;padding:18px}
+.right{display:flex;flex-direction:column;min-height:0;padding:14px;gap:10px;overflow-y:auto}
+.scene-wrap{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px 8px}
+.scene{display:block;width:100%;height:auto}
+.caption{font-size:13px;color:var(--muted);padding:6px 4px 0}
+.lob-wrap{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:6px;margin-bottom:10px}
+.lob{display:block;width:100%;height:auto;touch-action:none;user-select:none}
+.lede{color:var(--muted);margin-bottom:14px;max-width:62ch}
+.btn{appearance:none;border:1px solid var(--rule);background:var(--panel);border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer}
+.btn:hover:not(:disabled){background:var(--soft)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--flag);border-color:var(--flag-edge);color:var(--flag-ink)}
+.btn-primary:hover:not(:disabled){background:#F7C62E}
+.btn-row{display:flex;gap:8px;margin-top:14px}
+.btn-row .btn-primary{flex:1}
+.btn-icon{appearance:none;width:34px;height:34px;border-radius:8px;border:1px solid var(--rule);background:var(--panel);font-size:18px;font-weight:600;line-height:1;cursor:pointer}
+.btn-icon:hover:not(:disabled){background:var(--soft)}
+.btn-icon:disabled{opacity:.35;cursor:not-allowed}
+.btn-sm{padding:5px 9px;font-size:13px;border-radius:6px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.seg button{appearance:none;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600;font-size:14px}
+.seg button small{font-weight:400;color:var(--muted);font-size:12px}
+.seg button.on{border-width:2px;padding:7px 5px}
+.card{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--rule);border-radius:10px;padding:14px;margin-bottom:12px}
+.eq-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.eq-row:last-of-type{border-bottom:0}
+.eq-name{font-weight:600}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper-val{min-width:20px;text-align:center;font:600 18px 'Barlow Semi Condensed',sans-serif}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--rule)}
+.sum dt{font-size:12px;color:var(--muted)}
+.sum dd{margin:0;font:600 17px 'Barlow Semi Condensed',sans-serif}
+.callout{border:1px solid var(--rule);border-left-width:4px;border-radius:8px;padding:10px 12px;margin:10px 0;font-size:14px;background:var(--info-soft)}
+.callout.ok{background:var(--good-soft);border-color:var(--good)}
+.callout.bad{background:var(--bad-soft);border-color:var(--bad)}
+.callout.warn{background:var(--warn-soft);border-color:var(--warn)}
+.callout b{font-weight:600}
+.callout ul{margin:6px 0 0;padding-left:18px}
+.callout li{margin:3px 0}
+.bar{position:relative;height:30px;border-radius:15px;background:var(--soft);border:1px solid var(--rule);overflow:hidden}
+.bar.ok{border:2px solid var(--good)}
+.bar-fill{height:100%;border-radius:15px 0 0 15px;transition:width .08s linear}
+.bar-text{position:absolute;inset:0;display:grid;place-items:center;font-weight:600;font-size:13px;mix-blend-mode:normal;color:var(--ink);text-shadow:0 0 3px var(--panel),0 0 3px var(--panel)}
+.bar-meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin:5px 2px 8px}
+.formula{text-align:center;font:600 20px 'Barlow Semi Condensed',sans-serif;margin:6px 0 4px}
+.slider-row{display:flex;align-items:center;gap:8px}
+input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:30px;background:transparent;margin:0;--c:var(--exc)}
+.slider::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--rule)}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--c);border:3px solid var(--panel);margin-top:-9px;box-shadow:0 0 0 1.5px var(--c)}
+.slider::-moz-range-track{height:6px;border-radius:3px;background:var(--rule)}
+.slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--c);border:3px solid var(--panel);box-shadow:0 0 0 1.5px var(--c)}
+.slider:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:6px}
+.locked-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--rule);border-radius:8px;margin-bottom:8px;background:var(--soft)}
+.sw{width:12px;height:12px;border-radius:3px;flex:none}
+.grow{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:3px 10px;font-size:13px;background:var(--soft)}
+.progress{display:flex;gap:4px;margin:4px 0 10px}
+.progress i{flex:1;height:5px;border-radius:3px;background:var(--rule)}
+.progress i.on{background:var(--flag)}
+.nudge{display:flex;gap:4px}
+.crew-row{border:1px solid var(--rule);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.crew-row .top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0 0 18px;padding:12px 14px;background:var(--soft);border-radius:10px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-weight:500}
+.how{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:10px}
+.how li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.how .n{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--panel);display:grid;place-items:center;font:600 14px 'Barlow Semi Condensed',sans-serif}
+.how b{display:block;font-weight:600}
+.how span.t{color:var(--muted);font-size:14px}
+.reading{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.reading figure{margin:0;border:1px solid var(--rule);border-radius:8px;padding:6px 6px 8px;background:var(--panel)}
+.reading figcaption{font-size:13px;text-align:center;color:var(--muted)}
+.reading svg{width:100%;height:auto;display:block}
+.rules{margin:0 0 18px;padding-left:18px;color:var(--muted);font-size:14px}
+.rules li{margin:2px 0}
+.result{width:100%;border-collapse:collapse;margin:8px 0}
+.result th,.result td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--rule);font-size:14px}
+.result th{font-weight:500;color:var(--muted)}
+.result td:last-child,.result th:last-child{text-align:right}
+.lane-name{font:600 17px 'Barlow Semi Condensed',sans-serif;fill:var(--ink)}
+.lane-sub{font:400 13px 'Barlow',sans-serif;fill:var(--muted)}
+.tick{font:400 12.5px 'Barlow',sans-serif;fill:var(--muted)}
+.ax{font:500 14px 'Barlow',sans-serif;fill:var(--muted)}
+.halo{paint-order:stroke;stroke:var(--panel);stroke-width:4px;stroke-linejoin:round}
+.lob-label{font:600 15.5px 'Barlow Semi Condensed',sans-serif}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none}.bar-fill{transition:none}}
+.lob.mini{min-height:170px;max-height:250px}
+.three{position:relative;flex:1;min-height:320px;border-radius:10px;overflow:hidden;background:#A9CFE4;border:1px solid var(--rule)}
+.three canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;touch-action:none;cursor:grab}
+.three canvas:active{cursor:grabbing}
+.tag3d{position:absolute;left:0;top:0;z-index:2;pointer-events:none;background:var(--panel);border:1px solid var(--rule);border-left:4px solid;border-radius:6px;padding:3px 8px;font-size:12px;line-height:1.3;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.18);will-change:transform}
+.tag3d b{display:block;font:600 13px 'Barlow Semi Condensed',sans-serif}
+.tag3d span{color:var(--muted)}
+.day3d{position:absolute;left:10px;top:10px;z-index:2;background:rgba(255,255,255,.85);color:#15242B;border-radius:8px;padding:4px 10px;font:600 18px 'Barlow Semi Condensed',sans-serif;pointer-events:none}
+.hint3d{position:absolute;right:10px;bottom:8px;z-index:2;font-size:12px;color:#1E2B31;background:rgba(255,255,255,.78);padding:2px 8px;border-radius:6px;pointer-events:none}
+.three-err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;z-index:3;background:var(--panel);color:var(--ink)}
+.field-label{font-size:13px;color:var(--muted);margin:14px 0 6px}
+.seg.seg4{grid-template-columns:repeat(4,1fr)}
+.seg.seg4 button{font-size:13px;padding:7px 4px}
+.dayline{display:flex;align-items:baseline;gap:6px}
+.dayn{font:700 34px 'Barlow Semi Condensed',sans-serif;line-height:1}
+.thin{height:6px;border-radius:3px;background:var(--soft);border:1px solid var(--rule);overflow:hidden;margin-top:6px}
+.thin i{display:block;height:100%}
+.readout{text-align:center;font-size:15px;margin:6px 0 0;min-height:22px}
+.simbar{flex:none;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px 12px}
+.simbar-day{display:flex;align-items:center;gap:10px}
+.simbar-day .dayn{font-size:26px}
+.simbar-day .slider{flex:1}
+.simbar-ctrl{display:grid;grid-template-columns:3fr 4fr;gap:12px}
+.simbar .field-label{margin:8px 0 5px}
+.simbar .seg{margin-bottom:0}
+.crew-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.right .caption{margin:0}
+.g-minor{stroke:var(--rule);stroke-width:.5;opacity:.75}
+.g-major{stroke:var(--rule);stroke-width:1.1}
+.lob-inner{position:relative}
+.sched h2{margin-bottom:2px}
+.snap{position:absolute;transform:translate(-50%,calc(-100% - 16px));background:var(--panel);border:1px solid var(--rule);border-top:3px solid;border-radius:8px;padding:8px 10px;box-shadow:0 6px 18px rgba(0,0,0,.18);font-size:13px;white-space:nowrap;z-index:3}
+.snap::after{content:"";position:absolute;left:50%;bottom:-7px;width:12px;height:12px;background:var(--panel);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);transform:translateX(-50%) rotate(45deg)}
+.snap-math{color:var(--muted);margin:2px 0 7px}
+.snap-btns{display:flex;gap:6px}
+.block{margin-top:14px}
+.block h3{margin-bottom:6px}
+.stable{width:100%;border-collapse:collapse;font-size:14px}
+.stable th{font-weight:500;color:var(--muted);text-align:right;padding:4px 6px;border-bottom:1px solid var(--rule)}
+.stable th:first-child,.stable td:first-child{text-align:left}
+.stable td{text-align:right;padding:4px 6px}
+.stable tr.trade td{font:600 15px 'Barlow Semi Condensed',sans-serif;padding-top:8px;border-left:4px solid var(--rule)}
+.stable tr.tdata td{border-bottom:1px solid var(--rule);border-left:4px solid var(--rule)}
+.stable tr.trade td:not(:first-child),.stable tr.tdata td:not(:first-child){border-left:0}
+.stable tr.full td{background:var(--ts)}
+.stable tr.full td:first-child{border-left-color:var(--tc)}
+.stable tr.trade .sw{display:inline-block;margin-right:8px;vertical-align:-1px}
+.stable tr.proj td{font-weight:600;border-top:2px solid var(--ink);padding-top:6px}
+.status{display:inline-block;font-size:12.5px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--rule);color:var(--muted)}
+.status.st-done{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.status.st-half{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.status.st-work{background:var(--info-soft);border-color:var(--ink);color:var(--ink)}
+.budget{display:flex;height:28px;border-radius:6px;overflow:hidden;border:1px solid var(--rule)}
+.budget-seg{display:grid;place-items:center;color:var(--on-trade);font-weight:600;font-size:12.5px;min-width:2px}
+.budget-seg+.budget-seg{border-left:2px solid var(--panel)}
+.budget-list{list-style:none;margin:8px 0 0;padding:0;font-size:14px}
+.budget-list li{display:flex;align-items:center;gap:8px;padding:3px 0}
+.budget-total{border-top:1px solid var(--rule);margin-top:3px;padding-top:6px!important;font-weight:600}
+.hud{position:absolute;z-index:2;background:var(--panel);background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid var(--rule);border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.hud-tl{left:10px;top:10px;padding:8px 10px 9px;width:210px}
+.hud-day{display:flex;align-items:baseline;gap:6px}
+.hud-day b{font:700 26px 'Barlow Semi Condensed',sans-serif;line-height:1}
+.hud-day span,.hud-cost span{color:var(--muted);font-size:13px}
+.hud-cost{font-size:14px;margin:2px 0 6px}
+.hud-cost b{font-weight:600}
+.hud-crews{list-style:none;margin:0;padding:6px 0 0;border-top:1px solid var(--rule);display:grid;gap:5px}
+.hud-crews li{display:grid;grid-template-columns:1fr auto;column-gap:8px;font-size:13px}
+.hud-crews .nm{font-weight:600}
+.hud-crews .val{color:var(--muted);font-variant-numeric:tabular-nums}
+.hud-crews .c-done .val{color:var(--good);font-weight:600}
+.hud-crews .mini{grid-column:1/-1;height:4px;border-radius:2px;background:var(--soft);overflow:hidden;margin-top:2px}
+.hud-crews .mini i{display:block;height:100%}
+.hud-tr{right:10px;top:10px;display:flex;gap:2px;padding:3px}
+.cam{appearance:none;border:0;background:transparent;border-radius:7px;padding:5px 9px;font:500 13px 'Barlow',sans-serif;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.cam i{width:8px;height:8px;border-radius:50%}
+.cam:hover{background:var(--soft);color:var(--ink)}
+.cam.on{background:var(--ink);color:var(--panel)}
+.cam:focus-visible,.tb-play:focus-visible,.tb-speed button:focus-visible,.tl:focus-visible{outline:2px solid var(--flag-edge);outline-offset:2px}
+.tbar{flex:none;display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:8px 12px}
+.tb-play{appearance:none;flex:none;width:42px;height:42px;border-radius:50%;border:1px solid var(--flag-edge);background:var(--flag);color:var(--flag-ink);font-size:16px;font-weight:700;cursor:pointer;display:grid;place-items:center}
+.tb-play:hover{background:#F7C62E}
+.tlw{flex:1;min-width:0;display:grid;grid-template-columns:auto auto 1fr;column-gap:8px;align-items:start}
+.tl-ytitle{grid-row:1;grid-column:1;writing-mode:vertical-rl;transform:rotate(180deg);font-size:11.5px;font-weight:500;color:var(--muted);text-align:center;height:47px}
+.tl-ylabels{grid-row:1;grid-column:2;position:relative;height:47px;min-width:76px}
+.tl-ylabels span{position:absolute;right:0;font-size:12px;font-weight:600;line-height:16px;white-space:nowrap}
+.tl{grid-row:1;grid-column:3;position:relative;height:66px;cursor:pointer;touch-action:none;user-select:none}
+.tl-lane{position:absolute;left:0;right:0;border-radius:3px;background:var(--soft)}
+.tl-lane i{position:absolute;top:0;bottom:0;border-radius:3px;opacity:.9}
+.tl-grid{position:absolute;top:0;height:47px;width:1px;background:var(--rule);pointer-events:none}
+.tl-done{position:absolute;left:0;top:0;height:47px;background:var(--ink);opacity:.07;border-radius:3px;pointer-events:none}
+.tl-head{position:absolute;top:-2px;width:2px;height:51px;margin-left:-1px;background:var(--flag-edge);pointer-events:none}
+.tl-head::after{content:"";position:absolute;left:50%;bottom:-5px;width:12px;height:12px;border-radius:50%;background:var(--flag);border:2px solid var(--flag-edge);transform:translateX(-50%)}
+.tl-tick{position:absolute;top:51px;transform:translateX(-50%);font-size:11px;color:var(--muted);pointer-events:none}
+.tl-xtitle{grid-row:2;grid-column:3;text-align:center;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:-2px}
+.tb-speedw{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tb-label{font-size:11.5px;font-weight:500;color:var(--muted)}
+.tb-speed{flex:none;display:flex;background:var(--soft);border-radius:8px;padding:2px}
+.tb-speed button{appearance:none;border:0;background:transparent;border-radius:6px;padding:6px 9px;min-width:38px;font:500 13px 'Barlow',sans-serif;color:var(--muted);cursor:pointer}
+.tb-speed button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.rounds{display:flex;gap:6px;margin-top:8px}
+.rounds{align-items:center}
+.rnd{appearance:none;background:var(--panel);font:600 13px 'Barlow',sans-serif;padding:4px 12px;border-radius:999px;border:1px solid var(--rule);color:var(--muted);cursor:pointer;display:inline-flex;gap:8px;align-items:baseline}
+.rnd:disabled{cursor:default}
+.rnd:not(:disabled):hover{background:var(--soft);color:var(--ink)}
+.rnd:focus-visible{outline:2px solid var(--flag-edge);outline-offset:2px}
+.rnd-d{font-weight:500;opacity:.85}
+.rnd-diff{font-size:13px;font-weight:600;color:var(--muted);margin-left:4px}
+.rnd-diff.good{color:var(--good)}.rnd-diff.bad{color:var(--bad)}
+.tabs.dim .tab{opacity:.5}
+.durc{margin:12px 0;border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--panel)}
+.durc-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.durc-row{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;margin:6px 0}
+.durc-track{position:relative;height:22px;background:var(--soft);border-radius:5px;margin-right:46px}
+.durc-grid{position:absolute;top:0;bottom:0;width:1px;background:var(--rule)}
+.durc-seg{position:absolute;top:3px;bottom:3px;border-radius:3px}
+.durc-end{position:absolute;top:50%;transform:translate(6px,-50%);font-size:13px;white-space:nowrap}
+.durc-axis{position:relative;height:14px;margin-right:46px}
+.durc-axis span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--muted)}
+.durc-x{text-align:center;font-size:11.5px;color:var(--muted);padding-left:70px}
+.rnd.on{background:var(--flag);border-color:var(--flag-edge);color:var(--flag-ink)}
+.rnd.past{color:var(--good);border-color:var(--good)}
+.meter-card{border-top-color:var(--flag-edge)}
+.meter-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.meter{height:12px;border-radius:6px;background:var(--soft);border:1px solid var(--rule);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--flag)}
+.meter.over i{background:var(--bad)}
+.bad-t{color:var(--bad);font-weight:600}
+.changes{list-style:none;margin:10px 0 0;padding:8px 0 0;border-top:1px solid var(--rule);font-size:13.5px;display:grid;gap:4px}
+.changes li{display:flex;gap:8px;align-items:baseline}
+.legend-note{font-size:13px;display:flex;align-items:center;gap:8px;margin:-4px 0 10px}
+.legend-note .dash{display:inline-block;width:26px;border-top:2.5px dashed var(--muted)}
+.legend-note .solid{display:inline-block;width:26px;border-top:3px solid var(--muted);margin-left:8px}
+.next-step{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--good-soft);border:1px solid var(--good);border-radius:8px;padding:8px 10px;margin-bottom:12px;font-weight:600}
+.pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.pick-b{appearance:none;background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--tc);border-radius:8px;padding:10px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+.pick-b:hover:not(:disabled){background:var(--soft)}
+.pick-b:disabled{cursor:default}
+.pick-b.wrong{background:var(--bad-soft);border-color:var(--bad);border-left-color:var(--tc)}
+.pick-b.right{background:var(--good-soft);border-color:var(--good);border-left-color:var(--tc)}
+.pick-n{font:600 16px 'Barlow Semi Condensed',sans-serif}
+.rates{display:grid;gap:8px}
+.rate-row{display:grid;grid-template-columns:92px 1fr 52px;gap:8px;align-items:center;font-size:14px}
+.rate-n{font-weight:600}
+.rate-bar{position:relative;height:14px;background:var(--soft);border-radius:4px}
+.rate-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.rate-bar em{position:absolute;top:-4px;bottom:-4px;border-left:2px dashed var(--ink)}
+.rate-v{text-align:right;font-weight:600;white-space:nowrap}
+.rate-pair{display:grid;grid-template-columns:92px 1fr;gap:8px;align-items:center;font-size:14px}
+.rate-row2{display:grid;grid-template-columns:24px 1fr 110px;gap:8px;align-items:center;margin:2px 0}
+.rl{font-size:12px;color:var(--muted);font-weight:600}
+.slow-tag{font-style:normal;font-size:11px;font-weight:600;color:var(--bad);margin-left:6px}
+.note{width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;resize:vertical}
+.note:focus-visible{outline:2px solid var(--flag-edge);outline-offset:1px}
+.review-chart{flex:1;margin:0}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0 4px}
+.kpi{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--panel)}
+.kpi-l{font-size:13px;color:var(--muted)}
+.kpi-v{font:600 18px 'Barlow Semi Condensed',sans-serif;margin:2px 0}
+.kpi-v .muted{font-weight:500}
+.delta{font-size:13px;font-weight:600}
+.delta.good{color:var(--good)}.delta.bad{color:var(--bad)}.delta.flat{color:var(--muted)}
+.bud-row{display:grid;grid-template-columns:62px 1fr 92px;gap:8px;align-items:center;margin:6px 0}
+.bud-row .budget{height:22px}
+.bud-v{text-align:right}
+.stable.chg td{font-size:13.5px;text-align:left;padding:5px 6px;border-bottom:1px solid var(--rule)}
+.stable.chg th{text-align:left}
+.stable.chg td:last-child,.stable.chg th:last-child{text-align:right;white-space:nowrap}
+.hud-tc{left:50%;top:10px;transform:translateX(-50%);display:flex;gap:2px;padding:3px}
+.impact{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:14px;margin-top:-4px}
+.impact>div{background:var(--soft);border-radius:8px;padding:7px 10px;display:flex;flex-direction:column}
+.revise{border:1px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin-bottom:12px;display:grid;gap:8px}
+.rev-row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--rule);border-left:4px solid;border-radius:8px;padding:8px 10px;font-size:14px}
+.pick.two{grid-template-columns:repeat(2,1fr)}
+.meter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;font-size:13px}
+.meter-grid>div{display:flex;flex-direction:column}
+.meter-grid b{font-size:15px}
+.step-h{display:flex;align-items:center;gap:8px;font:600 16px 'Barlow Semi Condensed',sans-serif;margin:14px 0 8px}
+.step-h .n{width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--panel);display:grid;place-items:center;font-size:13px}
+.good-t{color:var(--good);font-weight:600}
+.stable.ledger td{border-bottom:1px solid var(--rule)}
+.dur-card{border-top-width:4px;margin-top:-4px}
+.dur-done{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-left:4px solid;border-radius:8px;padding:8px 12px;margin:-4px 0 12px;background:var(--good-soft)}
+.assigned{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px;font-size:14.5px}
+.gate{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;margin:12px 0;background:var(--panel)}
+.gate h3{margin-bottom:6px}
+.gate-row{display:grid;grid-template-columns:70px auto 14px auto 1fr;gap:8px;align-items:baseline;padding:6px 8px;border-radius:8px;margin:4px 0;background:var(--soft);font-size:14px}
+.gate-row.pass{background:var(--good-soft)}.gate-row.fail{background:var(--bad-soft)}
+.gate-l{font-weight:600}
+.gate-mark{text-align:right;font-weight:600;font-size:13px}
+.gate-row.pass .gate-mark{color:var(--good)}.gate-row.fail .gate-mark{color:var(--bad)}
+.gate-note{font-size:13.5px;margin:6px 0}
+.hint{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--info-soft);font-size:13.5px}
+.stable.cpf td{font-size:13px;padding:3px 6px}
+.scorecard{display:flex;gap:14px;align-items:center;border:1px solid var(--rule);border-radius:10px;padding:10px 14px;margin:10px 0;background:var(--panel)}
+.sc-big{display:flex;align-items:baseline;gap:4px}
+.sc-big b{font:700 40px 'Barlow Semi Condensed',sans-serif;line-height:1}
+.sc-big span{color:var(--muted)}
+.sc-rows{display:grid;gap:3px;font-size:14px}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.checks li{display:grid;grid-template-columns:22px 1fr;gap:6px;padding:6px 8px;border-radius:8px;font-size:13.5px}
+.checks li.ok{background:var(--good-soft)}.checks li.no{background:var(--bad-soft)}
+.checks .ck{font-weight:700}.checks li.ok .ck{color:var(--good)}.checks li.no .ck{color:var(--bad)}
+.checks .muted{font-size:12.5px}
+.drag-tip{font-size:13px;font-weight:600;white-space:nowrap}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:13px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid}
+.pill.ok{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.pill.no{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.gate-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.gate-head h3{margin:0}
+.npc{position:absolute;left:10px;bottom:10px;z-index:3;display:flex;align-items:flex-end;gap:8px;max-width:min(430px,calc(100% - 20px))}
+.npc-face{appearance:none;flex:none;width:56px;height:56px;border-radius:50%;border:2px solid var(--panel);padding:0;background:none;cursor:pointer;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.npc-face svg{width:100%;height:100%;display:block;border-radius:50%}
+.npc-face:focus-visible{outline:2px solid var(--flag-edge);outline-offset:2px}
+.npc-dot{position:absolute;right:0;top:0;width:12px;height:12px;border-radius:50%;background:var(--flag);border:2px solid var(--panel)}
+.npc-bubble{position:relative;background:var(--panel);border:1px solid var(--rule);border-left:4px solid var(--flag-edge);border-radius:12px 12px 12px 4px;padding:8px 12px 9px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.npc.good .npc-bubble{border-left-color:var(--good)}.npc.alert .npc-bubble{border-left-color:var(--bad)}
+.npc-name{font:700 14px 'Barlow Semi Condensed',sans-serif}
+.npc-name span{font:500 12px 'Barlow',sans-serif;color:var(--muted);margin-left:4px}
+.npc-bubble p{margin:2px 0 0;font-size:14px;line-height:1.4}
+.npc-ghost{visibility:hidden}
+.target{border:1px solid var(--rule);border-left:4px solid;border-radius:8px;padding:8px 12px;margin-bottom:10px;background:var(--soft);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:14px}
+.target>div:first-child{display:flex;flex-direction:column}
+.target b{font-size:16px}
+.target-now{display:flex;flex-direction:column;align-items:flex-end;font-size:13.5px}
+.target.hit{background:var(--good-soft)}
+.logbar{font-size:12px;color:var(--muted);padding:4px 18px;border-bottom:1px solid var(--rule);background:var(--soft)}
+@media (max-width:900px){
+  .npc{max-width:calc(100% - 20px)}
+  .hud-tc{top:auto;bottom:70px}
+  .hud-tl{width:170px}
+  .hud-tr{left:10px;right:auto;top:auto;bottom:34px;flex-wrap:wrap}
+  .tbar{flex-wrap:wrap}
+  .app.wide{grid-template-columns:1fr}
+  .simbar-ctrl,.crew-grid{grid-template-columns:1fr}
+  .app{grid-template-columns:1fr;height:auto;min-height:100%}
+  .right{order:-1;overflow:visible}
+  .left{border-right:0}
+  .scroll{overflow:visible}
+  .lob{max-height:none}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- ═════════ CORE: data, rate/cost math, LOB conflict detection (plain JS) ═════════ -->
+<script>
+window.Core=(function(){
+  var PJ=15840;            // 3 miles, per trade
+  var MAXU=6;              // most machines one crew can field
+  var STEP=0.1, EPS=0.5;   // sampling step (days), contact tolerance (ft)
+  var TRADES=[
+    {k:'exc', name:'Excavation', types:[
+      {id:'small',    n:'Small Excavator',    r:165, c:900,  size:0.8},
+      {id:'standard', n:'Standard Excavator', r:220, c:1600, size:1.0},
+      {id:'large',    n:'Large Excavator',    r:330, c:2400, size:1.25}]},
+    {k:'pipe',name:'Pipe laying', types:[
+      {id:'standard', n:'Standard Crane',     r:180, c:2500, size:1.0},
+      {id:'heavy',    n:'Heavy Crane',        r:270, c:3200, size:1.3}]},
+    {k:'back',name:'Backfill', types:[
+      {id:'small',    n:'Small Backfill Set',    r:180, c:1400, size:0.8},
+      {id:'standard', n:'Standard Backfill Set', r:250, c:2300, size:1.0},
+      {id:'large',    n:'Large Backfill Set',    r:375, c:3000, size:1.25}]}
+  ];
+  function units(t,e){return t.types.reduce(function(a,ty){return a+((e&&e[ty.id])||0)},0)}
+  function rate(t,e){return t.types.reduce(function(a,ty){return a+((e&&e[ty.id])||0)*ty.r},0)}
+  function cost(t,e){return t.types.reduce(function(a,ty){return a+((e&&e[ty.id])||0)*ty.c},0)}
+  function dur(t,e){var r=rate(t,e);return r>0?Math.ceil(PJ/r):0}
+  // footage reached at time t by a crew that starts at s and needs d days
+  function pos(s,d,t){if(t<=s)return 0;if(t>=s+d)return PJ;return PJ*(t-s)/d}
+  // Finish-to-start: a crew may start only once the crew before it has fully finished (start >= predecessor end).
+  function pairCheck(sP,dP,sF,dF){
+    var eP=sP+dP,early=eP-sF;
+    return {conflict:early>1e-9,eP:eP,sF:sF,early:Math.max(0,early),wait:Math.max(0,-early)};
+  }
+  // starts, durs: arrays in trade order [exc,pipe,back]
+  function check(starts,durs){
+    var pairs=[pairCheck(starts[0],durs[0],starts[1],durs[1]),pairCheck(starts[1],durs[1],starts[2],durs[2])];
+    return {pairs:pairs,clear:!pairs[0].conflict&&!pairs[1].conflict};
+  }
+  function domain(durs){var s=durs.reduce(function(a,b){return a+b},0);return Math.ceil((s+10)/20)*20}
+  function stats(rates){
+    var mn=Math.min.apply(null,rates),mx=Math.max.apply(null,rates);
+    var mean=rates.reduce(function(a,b){return a+b},0)/rates.length;
+    var sd=Math.sqrt(rates.reduce(function(a,b){return a+(b-mean)*(b-mean)},0)/(rates.length-1));
+    return {rmr:mn/mx,cv:sd/mean};
+  }
+  return {PJ:PJ,MAXU:MAXU,TRADES:TRADES,units:units,rate:rate,cost:cost,dur:dur,pos:pos,pairCheck:pairCheck,check:check,domain:domain,stats:stats};
+})();
+</script>
+
+<!-- ═════════ UI ═════════ -->
+<script type="text/babel">
+
+const {useState,useRef,useEffect}=React;
+const NOOP={down(){},move(){},up(){},leave(){},startDrag(){}};
+const {TRADES,PJ,MAXU}=Core;
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const money=n=>'$'+fmt(n);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const tc=k=>`var(--${k})`;
+const ts=k=>`var(--${k}-soft)`;
+const plural=(n,w)=>n+' '+w+(n===1?'':'s');
+/* One time scale everywhere: elapsed working days. A crew that starts at day S and needs D days finishes at day S + D. */
+const span=(s,d)=>`day ${s} to day ${s+d}`;
+const dailyOf=eq=>TRADES.reduce((a,t)=>a+Core.cost(t,eq[t.k]),0);
+const fleetText=(t,e)=>{const p=t.types.filter(ty=>(e&&e[ty.id])>0).map(ty=>`${e[ty.id]} × ${ty.n}`);return p.length?p.join(', '):'none'};
+/* Three Round 1 sites, each with a different bottleneck. Each one is pre-checked: several Round 2
+   reallocations beat it on both duration and cost under the same daily budget. */
+const SITES={
+  A:{name:'Site A',eq:{exc:{standard:1},pipe:{standard:1,heavy:1},back:{large:2}}},          // excavation is the bottleneck
+  B:{name:'Site B',eq:{exc:{large:2},pipe:{standard:1},back:{large:2}}},                     // pipe laying is the bottleneck
+  C:{name:'Site C',eq:{exc:{large:2},pipe:{standard:1,heavy:1},back:{standard:1}}}           // backfill is the bottleneck
+};
+function pickSite(){
+  try{const q=new URLSearchParams(location.search).get('site');if(q&&SITES[q.toUpperCase()])return q.toUpperCase()}catch(e){}
+  const k=Object.keys(SITES);return k[Math.floor(Math.random()*k.length)];
+}
+const cloneEq=e=>JSON.parse(JSON.stringify(e));
+/* Round 1 base rate for each crew: the player builds a crew that matches this rate and daily cost */
+const targetOf=(site,i)=>{const t=TRADES[i],e=SITES[site].eq[t.k];return {r:Core.rate(t,e),c:Core.cost(t,e)}};
+const meets=(site,i,eq)=>{const t=TRADES[i],g=targetOf(site,i);return Core.rate(t,eq[t.k])===g.r&&Core.cost(t,eq[t.k])===g.c};
+function allFleets(t){const out=[],ids=t.types.map(x=>x.id);
+  const rec=(k,cur,n)=>{if(k===ids.length){if(n>0)out.push({...cur});return}for(let c=0;c+n<=MAXU;c++){cur[ids[k]]=c;rec(k+1,cur,n+c)}};rec(0,{},0);return out}
+/* Round 2 project duration as the game enforces it: crews before the first changed crew keep their
+   Round 1 dates, the first changed crew keeps its start, every crew after it starts when the one ahead finishes */
+function startsR2(r1,D2){
+  const f=[0,1,2].find(i=>D2[i]!==r1.D[i]),st={},en=[];
+  TRADES.forEach((t,i)=>{st[t.k]=(f==null||i<=f)?r1.starts[t.k]:en[i-1];en[i]=st[t.k]+D2[i]});
+  return st;
+}
+function projectR2(r1,D2){
+  const st=startsR2(r1,D2),en=TRADES.map((t,i)=>st[t.k]+D2[i]);
+  return Math.max(...en)-Math.min(...TRADES.map(t=>st[t.k]));
+}
+const directOf=eq=>TRADES.reduce((a,t)=>a+Core.dur(t,eq[t.k])*Core.cost(t,eq[t.k]),0);
+/* every reallocation that beats Round 1 on both duration and cost */
+function r2Options(r1){
+  const b=r1.slow[0],out=[];
+  [0,1,2].filter(d=>d!==b).forEach(d=>{
+    allFleets(TRADES[d]).forEach(ed=>allFleets(TRADES[b]).forEach(eb=>{
+      if(Core.rate(TRADES[b],eb)<=r1.R[b])return;
+      const eq={...cloneEq(r1.eq),[TRADES[d].k]:ed,[TRADES[b].k]:eb};
+      if(dailyOf(eq)>r1.daily)return;
+      const D2=TRADES.map(t=>Core.dur(t,eq[t.k])),T2=projectR2(r1,D2),C2=directOf(eq);
+      if(T2<r1.project&&C2<r1.direct)out.push({d,eq,T:T2,C:C2});
+    }));
+  });
+  const bestT=Math.min(...out.map(o=>o.T)),bestC=Math.min(...out.map(o=>o.C));
+  return {list:out,bestT,bestC,byDonor:d=>out.filter(o=>o.d===d)};
+}
+function score(r1,T2,C2,opt){
+  const part=(a,b,best)=>a===best?50:Math.max(0,Math.min(50,50*(a-b)/(a-best)));
+  return Math.round(part(r1.project,T2,opt.bestT)+part(r1.direct,C2,opt.bestC));
+}
+
+function roundStats(eq,starts){
+  const R=TRADES.map(t=>Core.rate(t,eq[t.k])),D=TRADES.map(t=>Core.dur(t,eq[t.k]));
+  const ends=TRADES.map((t,i)=>starts[t.k]+D[i]),first=Math.min(...TRADES.map(t=>starts[t.k]));
+  const minR=Math.min(...R);
+  return {eq,starts,R,D,ends,first,last:Math.max(...ends),project:Math.max(...ends)-first,
+    direct:TRADES.reduce((a,t,i)=>a+D[i]*Core.cost(t,eq[t.k]),0),daily:dailyOf(eq),
+    slow:R.map((r,i)=>r===minR?i:-1).filter(i=>i>=0),minR};
+}
+
+function machinesFor(t,e){
+  const list=[];
+  t.types.forEach(ty=>{for(let i=0;i<((e&&e[ty.id])||0);i++)list.push(ty)});
+  return list;
+}
+
+/* ───────── Line of Balance chart ───────── */
+const LW=620,LHT=450,ML=72,MR=22,MT=30,MB=50,PW=LW-ML-MR,PH=LHT-MT-MB;
+
+function LobChart({starts,durs,dom,plotK,chk,hover,svgRef,h,dragI,finalLocked,mini,cursor,ghost,focusI,label,revise,moves}){
+  const xs=d=>ML+d/dom*PW, ys=f=>MT+PH-f/PJ*PH;
+  const plotting=plotK<6,ti=Math.floor(plotK/2),isStart=plotK%2===0;
+  const xStep=dom<=100?10:20,xMinor=dom<=100?2:5,xt=[],xm=[];
+  for(let d=0;d<=dom;d+=xStep)xt.push(d);
+  for(let d=0;d<=dom;d+=xMinor)if(d%xStep)xm.push(d);
+  const yq=[];for(let q=1;q<12;q++)if(q%4)yq.push(q*1320);
+  const canDrag=plotK===6&&!finalLocked;
+  const lineTo=(s,d,t)=>[xs(t),ys(Core.pos(s,d,t))];
+  return(
+  <svg ref={svgRef} className={"lob"+(mini?" mini":"")} viewBox={`0 0 ${LW} ${LHT}`} role="img" aria-label="Line of Balance chart"
+       style={{cursor:plotting?'crosshair':'default'}}
+       onPointerDown={h.down} onPointerMove={h.move} onPointerUp={h.up} onPointerCancel={h.up} onPointerLeave={h.leave}>
+    {/* grid: minor every quarter mile and every few days, major every mile and every 10/20 days */}
+    <rect x={ML} y={MT} width={PW} height={PH} style={{fill:'var(--lane)'}}/>
+    {xm.map(d=><line key={'xm'+d} x1={xs(d)} x2={xs(d)} y1={MT} y2={MT+PH} className="g-minor"/>)}
+    {yq.map(f=><line key={'yq'+f} x1={ML} x2={ML+PW} y1={ys(f)} y2={ys(f)} className="g-minor"/>)}
+    {xt.map(d=><line key={'xt'+d} x1={xs(d)} x2={xs(d)} y1={MT} y2={MT+PH} className="g-major"/>)}
+    {[1,2,3].map(m=><line key={'ym'+m} x1={ML} x2={ML+PW} y1={ys(m*5280)} y2={ys(m*5280)} className="g-major"/>)}
+    {xm.map(d=><line key={'tm'+d} x1={xs(d)} x2={xs(d)} y1={MT+PH} y2={MT+PH+4} style={{stroke:'var(--muted)'}} strokeWidth="0.8"/>)}
+    {xt.map(d=><line key={'tt'+d} x1={xs(d)} x2={xs(d)} y1={MT+PH} y2={MT+PH+7} style={{stroke:'var(--muted)'}} strokeWidth="1"/>)}
+    {[0,1,2,3].map(m=>(
+      <g key={m}>
+        <text className="ax" x={ML-10} y={ys(m*5280)+4} textAnchor="end">{m===0?'0':m+' mi'}</text>
+        <text className="tick" x={ML-10} y={ys(m*5280)+17} textAnchor="end">{m===0?'':fmt(m*5280)+' ft'}</text>
+      </g>))}
+    {[0.5,1.5,2.5].map(m=><text key={'h'+m} className="tick" x={ML-10} y={ys(m*5280)+4} textAnchor="end">{m} mi</text>)}
+    {xt.map(d=><text key={d} className="ax" x={xs(d)} y={MT+PH+21} textAnchor="middle">{d}</text>)}
+    <text className="ax" x={ML+PW/2} y={LHT-10} textAnchor="middle">Time (days)</text>
+    <line x1={ML} x2={ML+PW} y1={ys(0)} y2={ys(0)} style={{stroke:'var(--muted)'}} strokeWidth="1.2"/>
+    <line x1={ML} x2={ML} y1={MT} y2={ys(0)} style={{stroke:'var(--muted)'}} strokeWidth="1.2"/>
+
+    {/* end preview while waiting for the end point */}
+    {plotting&&!isStart&&starts[TRADES[ti].k]!=null&&(()=>{const t=TRADES[ti],s0=starts[t.k],e0=s0+durs[ti];return(
+      <g pointerEvents="none">
+        <line x1={xs(s0)} y1={ys(0)} x2={xs(e0)} y2={ys(PJ)} stroke={tc(t.k)} strokeWidth="2" strokeDasharray="6 5" opacity="0.6"/>
+        <circle cx={xs(e0)} cy={ys(PJ)} r="9" fill="none" stroke={tc(t.k)} strokeWidth="2" strokeDasharray="3 3"/>
+      </g>)})()}
+
+    {/* plotting guide */}
+    {plotting&&isStart&&ti>0&&starts[TRADES[ti-1].k]!=null&&(()=>{const p=TRADES[ti-1],eP=starts[p.k]+durs[ti-1];return(
+      <g pointerEvents="none">
+        <rect x={ML} y={MT} width={xs(eP)-ML} height={PH} style={{fill:'var(--bad)'}} opacity="0.07"/>
+        <line x1={xs(eP)} x2={xs(eP)} y1={MT} y2={ys(0)} style={{stroke:'var(--bad)'}} strokeWidth="1.6" strokeDasharray="5 4"/>
+        <text className="tick halo" x={xs(eP)+6} y={MT+14} style={{fill:'var(--bad)',fontWeight:600}}>{p.name} finishes day {eP}</text>
+      </g>)})()}
+    {plotting&&(()=>{const t=TRADES[ti],row=ys(isStart?0:PJ);return(
+      <g pointerEvents="none">
+        <rect x={ML} y={row-14} width={PW} height="28" rx="6" fill={tc(t.k)} opacity="0.14"/>
+        <line x1={ML} x2={ML+PW} y1={row} y2={row} stroke={tc(t.k)} strokeWidth="1.4" strokeDasharray="6 4"/>
+        {hover!=null&&<g>
+          <line x1={xs(hover)} x2={xs(hover)} y1={MT} y2={ys(0)} stroke={tc(t.k)} strokeWidth="1" strokeDasharray="2 4"/>
+          <circle cx={xs(hover)} cy={row} r="8" fill="none" stroke={tc(t.k)} strokeWidth="2"/>
+          <text className="lob-label halo" x={xs(hover)} y={row+(isStart?-16:26)} textAnchor="middle" fill={tc(t.k)}>{isStart?`Start at day ${hover}`:`Day ${hover}`}</text>
+        </g>}
+      </g>)})()}
+
+    {/* finish-to-start violations: follower starts before its predecessor has finished */}
+    {plotK===6&&chk&&chk.pairs.map((c,pi)=>{
+      if(!c.conflict)return null;
+      const P=TRADES[pi],F=TRADES[pi+1],sF=c.sF,eP=c.eP;
+      return(
+      <g key={pi} pointerEvents="none">
+        <rect x={xs(sF)} y={MT} width={xs(eP)-xs(sF)} height={PH} style={{fill:'var(--bad)'}} opacity="0.16"/>
+        <line x1={xs(eP)} x2={xs(eP)} y1={MT} y2={ys(0)} style={{stroke:'var(--bad)'}} strokeWidth="1.8" strokeDasharray="5 4"/>
+        <circle className="pulse" cx={xs(sF)} cy={ys(0)} r="13" fill="none" style={{stroke:'var(--bad)'}} strokeWidth="3"/>
+        <text className="lob-label halo" x={clamp((xs(sF)+xs(eP))/2,ML+80,ML+PW-80)} y={MT+18+pi*20} textAnchor="middle" style={{fill:'var(--bad)'}}>{F.name} starts {plural(c.early,'day')} too early</text>
+      </g>)})}
+
+    {/* Round 2: required new start for each downstream crew */}
+    {revise&&revise.map(r=>{const t=TRADES[r.i];return(
+      <g key={'rv'+t.k} pointerEvents="none">
+        <line x1={xs(r.target)} x2={xs(r.target)} y1={MT} y2={ys(0)} stroke={tc(t.k)} strokeWidth="1.6" strokeDasharray="4 4"/>
+        <line x1={xs(r.target)} y1={ys(0)} x2={xs(r.target+durs[r.i])} y2={ys(PJ)} stroke={tc(t.k)} strokeWidth="2.5" strokeDasharray="2 5" strokeLinecap="round" opacity="0.8"/>
+        <circle className="pulse" cx={xs(r.target)} cy={ys(0)} r="9" fill="none" stroke={tc(t.k)} strokeWidth="2.5"/>
+        <text className="tick halo" x={xs(r.target)+6} y={ys(0)-12-r.i*14} style={{fill:tc(t.k),fontWeight:600}}>Move {t.name.toLowerCase()} here: day {r.target}</text>
+      </g>)})}
+
+    {/* start dates that move: arrow from the old start to the new one */}
+    {moves&&moves.map(m=>{const t=TRADES[m.i],x1=xs(m.from),x2=xs(m.to),y=ys(0)+18+m.i*0;const dir=x2>x1?1:-1;return(
+      <g key={'mv'+t.k} pointerEvents="none">
+        <line x1={x1} x2={x2-dir*6} y1={ys(0)-10} y2={ys(0)-10} stroke={tc(t.k)} strokeWidth="2"/>
+        <path d={`M${x2},${ys(0)-10} l${-dir*8},-5 v10 z`} fill={tc(t.k)}/>
+        <circle cx={x1} cy={ys(0)} r="5" fill="none" stroke={tc(t.k)} strokeWidth="1.8" strokeDasharray="2 2"/>
+        <text className="tick halo" x={(x1+x2)/2} y={ys(0)-16} textAnchor="middle" style={{fill:tc(t.k),fontWeight:600}}>{t.name}: day {m.from} → {m.to}</text>
+      </g>)})}
+
+    {/* other-round lines, dashed */}
+    {ghost&&TRADES.map((t,i)=>{const s0=ghost.starts[t.k];if(s0==null)return null;return(
+      <line key={'gh'+t.k} x1={xs(s0)} y1={ys(0)} x2={xs(s0+ghost.durs[i])} y2={ys(PJ)} stroke={tc(t.k)} strokeWidth="2.5" strokeDasharray="8 6" opacity="0.45" pointerEvents="none"/>)})}
+
+    {/* crew lines */}
+    {TRADES.map((t,i)=>{
+      const s=starts[t.k];if(s==null)return null;
+      const hasS=plotK>i*2,hasE=plotK>i*2+1,e=s+durs[i];
+      const bad=plotK===6&&chk&&((i>0&&chk.pairs[i-1].conflict)||(i<2&&chk.pairs[i].conflict));
+      return(
+      <g key={t.k} opacity={focusI!=null&&focusI!==i?0.22:1}>
+        {hasE&&<line x1={xs(s)} y1={ys(0)} x2={xs(e)} y2={ys(PJ)} stroke={tc(t.k)} strokeWidth={dragI===i?5:3.5} strokeLinecap="round" pointerEvents="none"/>}
+        {hasS&&<circle cx={xs(s)} cy={ys(0)} r="5.5" fill={tc(t.k)} style={{stroke:'var(--panel)'}} strokeWidth="2" pointerEvents="none"/>}
+        {hasE&&<circle cx={xs(e)} cy={ys(PJ)} r="5.5" fill={tc(t.k)} style={{stroke:'var(--panel)'}} strokeWidth="2" pointerEvents="none"/>}
+        {hasE&&<text className="lob-label halo" x={clamp(xs(e),ML+34,ML+PW-34)} y={ys(PJ)-12} textAnchor="middle" fill={tc(t.k)} pointerEvents="none">{t.name}{label&&focusI===i?` · ${label}`:''}</text>}
+        {hasE&&plotK===6&&<text className="tick halo" x={xs(s)+9} y={ys(0)-9-i*13} fill={tc(t.k)} style={{fill:tc(t.k)}} pointerEvents="none">Day {s}</text>}
+        {canDrag&&<g>
+          <line x1={xs(s)} y1={ys(0)} x2={xs(e)} y2={ys(PJ)} stroke="transparent" strokeWidth="26" strokeLinecap="round"
+                style={{cursor:dragI===i?'grabbing':'ew-resize'}} onPointerDown={ev=>h.startDrag(i,ev)}/>
+          <circle cx={xs(s)} cy={ys(0)} r="13" fill="transparent" style={{cursor:'ew-resize'}} onPointerDown={ev=>h.startDrag(i,ev)}/>
+        </g>}
+      </g>)})}
+
+    {/* simulation day cursor */}
+    {cursor!=null&&<g pointerEvents="none">
+      <line x1={xs(cursor)} x2={xs(cursor)} y1={MT} y2={ys(0)} style={{stroke:'var(--flag-edge)'}} strokeWidth="2.5"/>
+      {TRADES.map((t,i)=>{const s=starts[t.k];if(s==null||cursor<s)return null;const f=Core.pos(s,durs[i],cursor);
+        return <circle key={t.k} cx={xs(Math.min(cursor,s+durs[i]))} cy={ys(f)} r="7" fill={tc(t.k)} style={{stroke:'var(--panel)'}} strokeWidth="2.5"/>})}
+    </g>}
+  </svg>);
+}
+
+/* ───────── small pieces ───────── */
+function Callout({lvl,children}){return <div className={'callout '+(lvl||'info')} role="status">{children}</div>}
+function Stepper({value,onDec,onInc,decOff,incOff,label}){return(
+  <div className="stepper">
+    <button className="btn-icon" onClick={onDec} disabled={decOff} aria-label={`Remove one ${label}`}>−</button>
+    <span className="stepper-val" aria-live="polite">{value}</span>
+    <button className="btn-icon" onClick={onInc} disabled={incOff} aria-label={`Add one ${label}`}>+</button>
+  </div>)}
+
+/* ───────── Intro ───────── */
+function MiniLob({collide}){return(
+  <svg viewBox="0 0 220 120" aria-hidden="true">
+    <line x1="10" y1="104" x2="210" y2="104" style={{stroke:'var(--muted)'}}/>
+    <line x1="10" y1="10" x2="10" y2="104" style={{stroke:'var(--muted)'}}/>
+    <line x1="20" y1="100" x2="95" y2="20" stroke="var(--exc)" strokeWidth="3" strokeLinecap="round"/>
+    <line x1="95" y1="20" x2="95" y2="104" style={{stroke:'var(--muted)'}} strokeWidth="1.2" strokeDasharray="3 3"/>
+    {collide?(<g>
+      <rect x="60" y="10" width="35" height="94" style={{fill:'var(--bad)'}} opacity="0.18"/>
+      <line x1="60" y1="100" x2="170" y2="20" stroke="var(--pipe)" strokeWidth="3" strokeLinecap="round"/>
+      <circle cx="60" cy="100" r="8" fill="none" style={{stroke:'var(--bad)'}} strokeWidth="2.5"/>
+    </g>):(<g>
+      <line x1="105" y1="100" x2="205" y2="20" stroke="var(--pipe)" strokeWidth="3" strokeLinecap="round"/>
+    </g>)}
+  </svg>)}
+
+
+/* ───────── Intro ───────── */
+function IntroTab({s}){return(
+  <div>
+    <h1>Plan the pipeline. Keep the crews apart.</h1>
+    <p className="lede" style={{marginTop:10}}>
+      Three crews build the same 3 miles one after another. Each crew starts only after the crew before it has finished. Build each crew to its base rate, find how long it needs, schedule them on a Line of Balance chart and watch the job run in 3D. Then improve it in Round 2.
+    </p>
+    <dl className="facts">
+      <dt>Project</dt><dd>College Station Water Pipeline</dd>
+      <dt>Pipe</dt><dd>24" PCCP, 6 to 8 ft deep</dd>
+      <dt>Each crew</dt><dd>3 miles (15,840 ft)</dd>
+      <dt>Order</dt><dd>Excavation, then pipe laying, then backfill</dd>
+    </dl>
+    <h3 style={{marginBottom:10}}>What you will do</h3>
+    <ol className="how">
+      <li><span className="n">1</span><div><b>Your crews</b><span className="t">Pick machines to match each crew's base rate, then slide the days until it covers 15,840 ft. That day is its duration.</span></div></li>
+      <li><span className="n">2</span><div><b>Schedule and run</b><span className="t">Plot each crew on the chart. Each one starts after the crew before it finishes. Then press Play.</span></div></li>
+      <li><span className="n">3</span><div><b>Round 2: review, improve, compare</b><span className="t">Find the crew that held you back and move budget to it from another crew, without spending more per day. Round 2 must beat Round 1 on both duration and cost.</span></div></li>
+    </ol>
+    <h3 style={{marginBottom:8}}>How to read the chart</h3>
+    <div className="reading">
+      <figure><MiniLob/><figcaption>Clear: starts after the crew ahead finishes</figcaption></figure>
+      <figure><MiniLob collide/><figcaption>Conflict: starts too early</figcaption></figure>
+    </div>
+    <ul className="rules">
+      <li>A steeper line is a faster crew.</li>
+      <li>End day = start day + duration.</li>
+      <li>A crew can start only after the crew before it has finished.</li>
+    </ul>
+    {LOG_URL&&<div style={{marginBottom:12}}>
+      <label className="field-label" htmlFor="pid">Player ID</label>
+      <input id="pid" className="note" style={{resize:'none'}} value={s.player} onChange={ev=>s.setPlayer(ev.target.value.slice(0,40))} placeholder="Your study ID"/>
+      <div className="muted" style={{fontSize:12.5,marginTop:4}}>Your results are saved for the study under this ID.</div>
+    </div>}
+    <button className="btn btn-primary" style={{width:'100%'}} disabled={!!LOG_URL&&!s.player.trim()} onClick={()=>s.setTab('equip')}>Start</button>
+  </div>)}
+
+/* ───────── 1 Equipment ───────── */
+function EquipTab({s}){
+  if(s.round===2)return <EquipR2 s={s}/>;
+  const t=TRADES.find(x=>x.k===s.activeEq),i=TRADES.indexOf(t),n=s.U[i],last=i===2,next=TRADES[i+1];
+  const done=k=>{const j=TRADES.findIndex(x=>x.k===k);return meets(s.site,j,s.eq)&&s.locked[k]&&s.g[k]===s.D[j]&&s.U[j]>0};
+  const tg=targetOf(s.site,i),hit=meets(s.site,i,s.eq),r=s.R[i],c=Core.cost(t,s.eq[t.k]);
+  const allDone=TRADES.every(x=>done(x.k));
+  return(
+  <div>
+    <h2>Your crews</h2>
+    <p className="lede">For each crew, add machines until you hit the base rate, then slide the days until the bar is full.</p>
+    <div className="seg" role="group" aria-label="Crews">
+      {TRADES.map((x,j)=>{const on=x.k===t.k,u=s.U[j];return(
+        <button key={x.k} className={on?'on':''} style={{borderColor:on?tc(x.k):undefined}} onClick={()=>s.setActiveEq(x.k)} aria-pressed={on}>
+          <span style={{color:tc(x.k)}}>{done(x.k)?'✓ ':''}{x.name}</span>
+          <small>{done(x.k)?plural(s.D[j],'day'):meets(s.site,j,s.eq)?'set the days':'match the base rate'}</small>
+        </button>)})}
+    </div>
+    <div className={'target'+(hit?' hit':'')} style={{borderLeftColor:tc(t.k)}}>
+      <div><span className="muted">Base rate for {t.name.toLowerCase()}</span><b>{fmt(tg.r)} ft/day · {money(tg.c)}/day</b></div>
+      <div className="target-now">
+        <span className={r===tg.r?'good-t':''}>{fmt(r)} ft/day {r===tg.r?'✓':r<tg.r?`(${fmt(tg.r-r)} short)`:`(${fmt(r-tg.r)} over)`}</span>
+        <span className={c===tg.c?'good-t':''}>{money(c)}/day {c===tg.c?'✓':c<tg.c?`(${money(tg.c-c)} under)`:`(${money(c-tg.c)} over)`}</span>
+      </div>
+    </div>
+    <EquipCard s={s} t={t}/>
+    {hit?<DurFill s={s} i={i}/>:<Callout>Click + and − until the crew rate and daily cost both match the base rate.</Callout>}
+    <div className="btn-row">
+      {i>0&&<button className="btn" onClick={()=>s.setActiveEq(TRADES[i-1].k)}>Back</button>}
+      {!last&&<button className="btn btn-primary" disabled={!done(t.k)} onClick={()=>s.setActiveEq(next.k)}>Next: {next.name.toLowerCase()}</button>}
+      {last&&<button className="btn btn-primary" disabled={!allDone} onClick={()=>s.setTab('lob')}>Continue to schedule</button>}
+    </div>
+    {!done(t.k)&&<p className="muted" style={{fontSize:13,marginTop:6}}>Fill the bar and press "Lock in" to continue.</p>}
+    {last&&!allDone&&done(t.k)&&<p className="muted" style={{fontSize:13,marginTop:6}}>Lock in {TRADES.filter(x=>!done(x.k)).map(x=>x.name.toLowerCase()).join(' and ')} to continue.</p>}
+  </div>)}
+
+/* fill-the-bar duration, shown under a crew's equipment card */
+function DurFill({s,i}){
+  const t=TRADES[i];if(s.U[i]===0)return null;
+  const r=s.R[i],need=s.D[i],g=s.g[t.k],ft=g*r,pct=Math.min(ft/PJ,1)*100,ok=g===need,over=g>need,cost=Core.cost(t,s.eq[t.k]);
+  const setG=v=>s.setGuess(t.k,clamp(v,0,130));
+  if(s.locked[t.k]&&ok)return(
+    <div className="dur-done" style={{borderLeftColor:tc(t.k)}}>
+      <span className="grow"><b style={{color:'var(--good)'}}>✓ {plural(need,'day')}</b> <span className="muted">· {money(need*cost)}</span></span>
+      {s.canRedo(i)&&<button className="btn btn-sm" onClick={()=>s.unlockDur(t.k)}>Redo</button>}
+    </div>);
+  return(
+    <section className="card dur-card" style={{borderTopColor:tc(t.k)}}>
+      <h3 style={{marginBottom:2}}>Fill the bar</h3>
+      <div className="muted" style={{fontSize:13,marginBottom:10}}>Slide until {t.name.toLowerCase()} covers all {fmt(PJ)} ft.</div>
+      <div className={'bar'+(ok?' ok':'')}>
+        <div className="bar-fill" style={{width:pct+'%',background:over?'var(--bad)':tc(t.k)}}/>
+        <div className="bar-text">{ok?'Full':over?'Too far':Math.round(pct)+'%'}</div>
+      </div>
+      <div className="slider-row" style={{marginTop:10}}>
+        <button className="btn-icon" onClick={()=>setG(g-1)} disabled={g<=0} aria-label="One day less">−</button>
+        <input className="slider" type="range" min="0" max="130" value={g} style={{'--c':tc(t.k)}} aria-label={`Days for ${t.name}`} onChange={ev=>setG(+ev.target.value)}/>
+        <button className="btn-icon" onClick={()=>setG(g+1)} disabled={g>=130} aria-label="One day more">+</button>
+      </div>
+      <p className="readout">
+        {ok?<><b style={{color:'var(--good)'}}>Full at {plural(need,'day')}</b> · {money(need*cost)}</>
+          :over?<span style={{color:'var(--bad)'}}>{plural(g,'day')} goes past {fmt(PJ)} ft. Slide back.</span>
+          :<>{plural(g,'day')} × {fmt(r)} = <b>{fmt(ft)} ft</b></>}
+      </p>
+      <div className="btn-row" style={{marginTop:8}}><button className="btn btn-primary" disabled={!ok} onClick={()=>s.lockDur(t.k)}>Lock in {ok?plural(need,'day'):'duration'}</button></div>
+    </section>);
+}
+
+function EquipCard({s,t,readOnly}){
+  const e=s.eq[t.k],n=Core.units(t,e),r=Core.rate(t,e),c=Core.cost(t,e);
+  if(readOnly)return(
+    <section className="card" style={{borderTopColor:tc(t.k)}}>
+      <h3>{t.name} <span className="muted" style={{fontWeight:400,fontSize:15}}>· {fmt(PJ)} ft</span></h3>
+      <ul className="assigned">{t.types.filter(ty=>(e&&e[ty.id])>0).map(ty=><li key={ty.id}><b>{e[ty.id]} ×</b> {ty.n} <span className="muted">· {ty.r} ft/day · {money(ty.c)}/day</span></li>)}</ul>
+      <dl className="sum">
+        <div><dt>Crew rate</dt><dd>{fmt(r)} ft/day</dd></div>
+        <div><dt>Daily cost</dt><dd>{money(c)}</dd></div>
+        <div><dt>Machines</dt><dd>{n}</dd></div>
+      </dl>
+    </section>);
+  return(
+    <section className="card" style={{borderTopColor:tc(t.k)}}>
+      <h3>{t.name} <span className="muted" style={{fontWeight:400,fontSize:15}}>· {fmt(PJ)} ft</span></h3>
+      {t.types.map(ty=>{const v=(e&&e[ty.id])||0;return(
+        <div className="eq-row" key={ty.id}>
+          <div><div className="eq-name">{ty.n}</div><div className="muted" style={{fontSize:13}}>{ty.r} ft/day · {money(ty.c)}/day</div></div>
+          <Stepper value={v} label={ty.n} decOff={v===0} incOff={n>=MAXU} onDec={()=>s.setCount(t.k,ty.id,-1)} onInc={()=>s.setCount(t.k,ty.id,1)}/>
+        </div>)})}
+      <dl className="sum">
+        <div><dt>Crew rate</dt><dd>{fmt(r)} ft/day</dd></div>
+        <div><dt>Daily cost</dt><dd>{money(c)}</dd></div>
+        <div><dt>Machines</dt><dd>{n} of {MAXU}</dd></div>
+      </dl>
+    </section>)}
+
+function EquipR2({s}){
+  const r1=s.r1,bi=r1.slow[0],di=s.rev.donor,bt=TRADES[bi],dt=TRADES[di];
+  const lockedI=[0,1,2].filter(i=>i!==bi&&i!==di);
+  const known=i=>s.locked[TRADES[i].k]&&s.g[TRADES[i].k]===s.D[i];      // a duration counts once its bar is locked
+  const D2=s.D,ok=s.U.every(u=>u>0)&&[0,1,2].every(known),chk2=ok?Core.check(TRADES.map(x=>r1.starts[x.k]),D2):null;
+  const cap=r1.daily,used=dailyOf(s.eq),over=used>cap;
+  const freed=Core.cost(dt,r1.eq[dt.k])-Core.cost(dt,s.eq[dt.k]),spent=Core.cost(bt,s.eq[bt.k])-Core.cost(bt,r1.eq[bt.k]);
+  const dd=ok?D2[di]-r1.D[di]:0,db=ok?D2[bi]-r1.D[bi]:0,net=dd+db;
+  const sum1=r1.D.reduce((a,b)=>a+b,0),sum2=ok?D2.reduce((a,b)=>a+b,0):null;
+  const st2=ok?startsR2(r1,D2):null;
+  const endMax=Math.max(...TRADES.map((t,i)=>r1.starts[t.k]+r1.D[i]),...(ok?TRADES.map((t,i)=>st2[t.k]+D2[i]):[0]));
+  const dom=Math.max(Math.ceil((endMax+5)/20)*20,Core.domain(r1.D));
+  const moves=ok?[0,1,2].filter(i=>st2[TRADES[i].k]!==r1.starts[TRADES[i].k]).map(i=>({i,from:r1.starts[TRADES[i].k],to:st2[TRADES[i].k]})):[];
+  const sign=v=>v>0?'+'+v:v<0?'−'+Math.abs(v):'0';
+  return(
+  <div>
+    <h2>Reallocate the budget</h2>
+    <p className="lede">Free up money on <b style={{color:tc(dt.k)}}>{dt.name}</b>, then spend it on <b style={{color:tc(bt.k)}}>{bt.name}</b>. Fill the bar for each crew you change. {TRADES[lockedI[0]].name} stays as it was.</p>
+
+    <section className="card meter-card">
+      <div className="meter-head"><b>Daily budget</b><span className={over?'bad-t':''}>{money(used)} of {money(cap)}</span></div>
+      <div className={'meter'+(over?' over':'')}><i style={{width:Math.min(used/cap,1)*100+'%'}}/></div>
+      <div className="meter-grid">
+        <div><span className="muted">Freed from {dt.name.toLowerCase()}</span><b>{money(Math.max(freed,0))}</b></div>
+        <div><span className="muted">Spent on {bt.name.toLowerCase()}</span><b>{money(Math.max(spent,0))}</b></div>
+        <div><span className="muted">{over?'Over budget':'Left'}</span><b className={over?'bad-t':''}>{money(Math.abs(cap-used))}</b></div>
+      </div>
+    </section>
+
+    <div className="step-h"><span className="n">a</span>Free up budget: downsize {dt.name.toLowerCase()}</div>
+    <div onClickCapture={()=>s.setActiveEq(dt.k)}><EquipCard s={s} t={dt}/>{(s.R[di]!==r1.R[di]||!s.locked[dt.k])&&<DurFill s={s} i={di}/>}</div>
+    <div className="step-h"><span className="n">b</span>Spend it: speed up {bt.name.toLowerCase()}</div>
+    <div onClickCapture={()=>s.setActiveEq(bt.k)}><EquipCard s={s} t={bt}/>{(s.R[bi]!==r1.R[bi]||!s.locked[bt.k])&&<DurFill s={s} i={bi}/>}</div>
+
+    <section className="block">
+      <h3>Days gained and lost</h3>
+      <table className="stable ledger">
+        <thead><tr><th>Crew</th><th>Rate (ft/day)</th><th>Days</th><th>Change</th></tr></thead>
+        <tbody>
+          {[di,bi].map(i=>{const t=TRADES[i],k=known(i),dlt=k?D2[i]-r1.D[i]:0;return(
+            <tr key={t.k}><td><span className="sw" style={{background:tc(t.k),display:'inline-block',marginRight:8}}/>{t.name}</td>
+              <td>{fmt(r1.R[i])} → {fmt(s.R[i])}</td><td>{r1.D[i]} → {k?D2[i]:'?'}</td>
+              <td className={dlt>0?'bad-t':dlt<0?'good-t':''}>{k?sign(dlt)+' d':'fill the bar'}</td></tr>)})}
+          <tr className="proj"><td>Net change</td><td></td><td></td><td className={net>0?'bad-t':net<0?'good-t':''}>{ok?sign(net)+' d':'–'}</td></tr>
+        </tbody>
+      </table>
+      <p className="muted" style={{fontSize:13,margin:'6px 0 0'}}>You will see the impact on the schedule, and move the crews after the change, on the Schedule step.</p>
+    </section>
+
+
+    <Gate s={s}/>
+    <div className="btn-row">
+      <button className="btn" onClick={s.resetFleet}>Undo changes</button>
+      <button className="btn btn-primary" disabled={!s.gatePass} onClick={()=>s.setTab('lob')}>Continue to schedule</button>
+    </div>
+  </div>)}
+
+/* Round 2 checklist: every condition for "Continue to schedule", each with its own status, so a blocked player sees why */
+function Gate({s}){
+  const r1=s.r1,bi=r1.slow[0],di=s.rev.donor,bt=TRADES[bi],dt=TRADES[di];
+  const cap=r1.daily,used=dailyOf(s.eq);
+  const changed=[di,bi].filter(i=>s.R[i]!==r1.R[i]);
+  const barsOpen=TRADES.filter((t,i)=>!(s.locked[t.k]&&s.g[t.k]===s.D[i]));
+  const faster=s.changedR2,inBudget=used<=cap,locked=barsOpen.length===0&&s.fleetOk;
+  const known=locked&&s.fleetOk,T2=known?s.projT:null,C2=known?s.projC:null;
+  const tOk=known&&T2<r1.project,cOk=known&&C2<r1.direct;
+  const hint=s.rev.hints||0,opt=s.opt;
+  const sugg=opt.byDonor(di).slice().sort((a,b)=>a.T-b.T||a.C-b.C)[0];
+  const items=[
+    {ok:faster,short:`${bt.name} faster`,l:`${bt.name} is faster than in Round 1`,why:faster?`${fmt(r1.R[bi])} → ${fmt(s.R[bi])} ft/day`:`Add or upgrade ${bt.name.toLowerCase()} machines. Now ${fmt(s.R[bi])} ft/day, Round 1 ${fmt(r1.R[bi])}.`},
+    {ok:inBudget,short:'Within budget',l:'Daily cost within the Round 1 budget',why:inBudget?`${money(used)} of ${money(cap)}`:`${money(used-cap)} over. Downsize ${dt.name.toLowerCase()} more, or pick a cheaper ${bt.name.toLowerCase()} machine.`},
+    {ok:locked,short:'Days locked',l:'Every changed crew has its duration locked',why:locked?'All bars full':`Fill and lock the bar for ${barsOpen.map(t=>t.name.toLowerCase()).join(' and ')||'each crew'}.`},
+    {ok:tOk,short:known?`Shorter · ${T2} d`:'Shorter',l:'Shorter than Round 1',why:!known?'Shown once the bars are locked':tOk?`${r1.project} → ${T2} days (${r1.project-T2} d shorter)`:`${r1.project} → ${T2} days. ${bt.name} must gain more days than ${dt.name.toLowerCase()} loses.`},
+    {ok:cOk,short:known?`Cheaper · ${money(C2)}`:'Cheaper',l:'Cheaper than Round 1',why:!known?'Shown once the bars are locked':cOk?`${money(r1.direct)} → ${money(C2)}`:`${money(r1.direct)} → ${money(C2)}. Use machines with a lower cost per foot.`}];
+  const pass=items.every(x=>x.ok);
+  return(<section className="gate">
+    <div className="gate-head"><h3>Round 2 checks</h3><span className={pass?'good-t':'muted'}>{items.filter(x=>x.ok).length} of 5</span></div>
+    <div className="pills">{items.map((x,i)=><span key={i} className={'pill '+(x.ok?'ok':'no')} title={`${x.l}. ${x.why}`}>{x.ok?'✓':'✗'} {x.short}</span>)}</div>
+    {!pass&&<p className="gate-note muted">Rosa explains what's missing in the corner of the site view.</p>}
+    {pass&&<p className="gate-note good-t">All set. Best possible on this site: {plural(opt.bestT,'day')} and {money(opt.bestC)}.</p>}
+    {!pass&&changed.length>0&&hint===0&&<button className="btn btn-sm" onClick={()=>s.useHint(1)}>Show a hint</button>}
+    {!pass&&hint>=1&&<div className="hint">
+      <b>Cost per foot</b> (daily cost ÷ ft per day): lower is cheaper for the same 15,840 ft.
+      <table className="stable cpf"><tbody>{[di,bi].map(i=>TRADES[i].types.map(ty=><tr key={TRADES[i].k+ty.id}><td><span className="sw" style={{background:tc(TRADES[i].k),display:'inline-block',marginRight:6}}/>{ty.n}</td><td>{ty.r} ft/day</td><td>${(ty.c/ty.r).toFixed(2)}/ft</td></tr>))}</tbody></table>
+      {hint===1&&<button className="btn btn-sm" onClick={()=>s.useHint(2)}>Show a mix that works</button>}
+    </div>}
+    {!pass&&hint>=2&&sugg&&<div className="hint">One mix that works: {[di,bi].map(i=><span key={i}><b style={{color:tc(TRADES[i].k)}}>{TRADES[i].name}</b> {fleetText(TRADES[i],sugg.eq[TRADES[i].k])}. </span>)}</div>}
+  </section>);
+}
+
+/* ───────── 3 LOB ───────── */
+function conflictLine(pi,c){
+  const P=TRADES[pi],F=TRADES[pi+1];
+  return `${F.name} starts at day ${c.sF}, but ${P.name.toLowerCase()} finishes at day ${c.eP}. Move ${F.name.toLowerCase()} to day ${c.eP} or later.`;
+}
+
+
+function ScheduleTab({s}){
+  const {plotK,starts,D,chk,playing,simDay,endDay}=s;
+  const plotting=plotK<6,ti=Math.floor(plotK/2),isStart=plotK%2===0,tt=TRADES[ti]||TRADES[0];
+  const clear=!plotting&&chk&&chk.clear,ready=clear&&s.revise.length===0,done=ready&&simDay>=endDay&&endDay>0,started=simDay>0;
+  const r2=s.round===2,bt=r2?TRADES[s.bIdx]:null;
+  const title=plotting?'Plot the schedule':(r2&&s.revise.length)?'Revise downstream start dates':!clear?'Fix the conflicts':done?'Schedule results':'Run your schedule';
+  const pend=plotting&&!isStart&&starts[tt.k]!=null;
+  const S0=pend?starts[tt.k]:0,E0=S0+D[ti];
+  const pl=clamp((ML+S0/s.DOM*PW)/LW*100,16,84),pt=(MT+PH)/LHT*100;
+  return(
+  <div className="sched">
+    <h2>{title}</h2>
+    <p className="lede" style={{marginBottom:8}}>
+      {plotting?(isStart?<>Click the chart at the day <b style={{color:tc(tt.k)}}>{tt.name}</b> starts.{ti>0?` It can start only after ${TRADES[ti-1].name.toLowerCase()} has finished.`:''}</>
+                        :<>Snap the <b style={{color:tc(tt.k)}}>{tt.name}</b> end in the pop-up, or click the 3 mi row yourself.</>)
+        :(r2&&s.revise.length)?<>{bt.name} now finishes at day {starts[bt.k]+D[s.bIdx]}. Move each crew after it so it starts when the crew ahead finishes.</>
+        :!clear?'Drag a line sideways to change when that crew starts.'
+        :done?`Round ${s.round} is complete. Drag a line to try a different schedule.`
+        :playing?'The cursor on the chart follows the 3D site.'
+        :'Every crew starts after the one ahead has finished. Press Play to run it.'}
+    </p>
+    <div className="lob-wrap">
+      <div className="lob-inner">
+        <LobChart starts={starts} durs={D} dom={s.DOM} plotK={plotK} chk={chk} hover={s.hover} svgRef={s.svgRef} h={s.h} dragI={s.dragI} finalLocked={playing} cursor={ready&&(started||playing)?simDay:null} ghost={s.round===2?{starts:s.r1.starts,durs:s.r1.D}:null} revise={s.revise.slice(0,1)}/>
+        {pend&&<div className="snap" role="dialog" aria-label={`${tt.name} end point`} style={{left:pl+'%',top:pt+'%',borderTopColor:tc(tt.k)}}>
+          <div><b style={{color:tc(tt.k)}}>{tt.name}</b> starts at day {S0}</div>
+          <div className="snap-math">End = {S0} + {D[ti]} = <b>day {E0}</b>{ti<2?<><br/>{TRADES[ti+1].name} can start at day {E0} or later.</>:null}</div>
+          <div className="snap-btns">
+            <button className="btn btn-primary btn-sm" onClick={s.snapEnd}>Snap end to day {E0}</button>
+            <button className="btn btn-sm" onClick={s.undoStart}>Change start</button>
+          </div>
+        </div>}
+      </div>
+    </div>
+
+    {s.round===2&&<p className="muted legend-note"><span className="dash"/>Dashed lines: your Round 1 schedule</p>}
+    {s.round===2&&!plotting&&(()=>{const moved=TRADES.filter(t=>starts[t.k]!==s.r1.starts[t.k]);return(
+      <p className="muted" style={{fontSize:13,margin:'-4px 0 10px'}}>{moved.length?`Start dates moved: ${moved.map(t=>`${t.name} ${s.r1.starts[t.k]} → ${starts[t.k]}`).join(', ')}.`:'Start dates are the same as Round 1.'}</p>)})()}
+    {plotting&&s.msg&&<Callout lvl={s.msg.lvl}>{s.msg.text}</Callout>}
+    {!plotting&&r2&&s.revise.length>0&&<div className="revise">
+      <b>Revise start dates in order, from upstream to downstream</b>
+      {s.revise.slice(0,1).map(r=>{const t=TRADES[r.i],p=TRADES[r.i-1],late=r.cur<r.target;return(
+        <div className="rev-row" key={t.k} style={{borderLeftColor:tc(t.k)}}>
+          <div className="grow">
+            <b style={{color:tc(t.k)}}>{t.name}</b> starts at day {r.cur}; {p.name.toLowerCase()} now finishes at day {r.target}.
+            <div className="muted" style={{fontSize:13}}>{late?`Starts ${plural(r.target-r.cur,'day')} too early.`:`Waits ${plural(r.cur-r.target,'day')} for no reason.`}</div>
+          </div>
+          <span className="drag-tip" style={{color:tc(t.k)}}>Drag to day {r.target}</span>
+        </div>)})}
+      {s.revise.length>1&&<div className="muted" style={{fontSize:13}}>Next: {s.revise.slice(1).map(r=>TRADES[r.i].name.toLowerCase()).join(', ')}, once this one is fixed.</div>}
+      <div className="muted" style={{fontSize:13}}>Drag the line sideways on the chart. The dashed line and ring mark where it should start.</div>
+    </div>}
+    {!plotting&&!r2&&!clear&&<Callout lvl="bad">
+      <b>{plural(chk.pairs.filter(p=>p.conflict).length,'conflict')} on the chart.</b>
+      <ul>{chk.pairs.map((c,pi)=>c.conflict?<li key={pi}>{conflictLine(pi,c)}</li>:null)}</ul>
+    </Callout>}
+    {ready&&<div className="btn-row" style={{marginTop:0,marginBottom:12}}>
+      <button className="btn btn-primary" onClick={s.togglePlay}>{playing?'Pause':done?'Replay':started?'Resume':'▶ Play'}</button>
+      <button className="btn" onClick={s.restart} disabled={!started}>Restart</button>
+    </div>}
+
+    {s.round===2&&!plotting&&<DurCompare a={s.r1} b={roundStats(s.eq,starts)} bLive={!done}/>}
+    <SchedTable s={s} started={started&&ready}/>
+    <Budget s={s}/>
+    {done&&<div className="next-step">
+      <span>Round {s.round} is complete.</span>
+      <button className="btn btn-primary" onClick={s.round===1?s.startRound2:()=>s.setTab('cmp')}>{s.round===1?'Start Round 2':'Compare both rounds'}</button>
+    </div>}
+  </div>)}
+
+function SchedTable({s,started}){
+  const {plotK,starts,D,R,eq,simDay}=s;
+  const all=plotK===6,first=all?Math.min(...TRADES.map(t=>starts[t.k])):null,last=all?Math.max(...TRADES.map((t,i)=>starts[t.k]+D[i])):null;
+  return(<section className="block">
+    <h3>Schedule</h3>
+    <table className="stable">
+      <thead><tr><th>Crew</th><th>Rate</th><th>Dur</th><th>$/d</th><th>Start</th><th>End</th></tr></thead>
+      <tbody>
+        {TRADES.map((t,i)=>{
+          const hasS=plotK>i*2,hasE=plotK>i*2+1,c=started?crewAt(i,starts,D,simDay):null;
+          const status=started?(c.st==='wait'?'Waiting':c.st==='work'?'Working':'Done')
+                      :hasE?'✓ Plotted':hasS?'Start set':'Not plotted';
+          const cls=started?(c.st==='work'?'st-work':c.st==='done'?'st-done':'st-wait'):hasE?'st-done':hasS?'st-half':'st-wait';
+          return(<React.Fragment key={t.k}>
+            <tr className={'trade'+(hasE?' full':'')} style={{'--tc':tc(t.k),'--ts':ts(t.k)}}>
+              <td colSpan="6"><span className="sw" style={{background:tc(t.k)}}/>{t.name}</td>
+            </tr>
+            <tr className={'tdata'+(hasE?' full':'')} style={{'--tc':tc(t.k),'--ts':ts(t.k)}}>
+              <td><span className={'status '+cls}>{status}</span></td>
+              <td>{fmt(R[i])}</td><td>{D[i]}d</td><td>{money(Core.cost(t,eq[t.k]))}</td>
+              <td>{hasS?starts[t.k]:'–'}</td><td>{hasE?starts[t.k]+D[i]:'–'}</td>
+            </tr>
+          </React.Fragment>)})}
+        <tr className="proj"><td>Project</td><td></td><td>{all?(last-first)+'d':'–'}</td><td></td><td>{all?first:'–'}</td><td>{all?last:'–'}</td></tr>
+      </tbody>
+    </table>
+  </section>)}
+
+function Budget({s}){
+  const {D,eq}=s;
+  const parts=TRADES.map((t,i)=>{const c=Core.cost(t,eq[t.k]);return {t,d:D[i],c,v:D[i]*c}});
+  const total=parts.reduce((a,p)=>a+p.v,0);
+  return(<section className="block">
+    <h3>Budget</h3>
+    <div className="budget" role="img" aria-label={`Total ${money(total)}`}>
+      {parts.map(p=><div key={p.t.k} className="budget-seg" style={{width:(p.v/total*100)+'%',background:tc(p.t.k)}} title={`${p.t.name}: ${money(p.v)}`}>
+        {p.v/total>0.14&&<span>{Math.round(p.v/total*100)}%</span>}
+      </div>)}
+    </div>
+    <ul className="budget-list">
+      {parts.map(p=><li key={p.t.k}><span className="sw" style={{background:tc(p.t.k)}}/><span className="grow">{p.t.name} <span className="muted">({p.d}d × {money(p.c)})</span></span><b>{money(p.v)}</b></li>)}
+      <li className="budget-total"><span className="grow">Total</span><b>{money(total)}</b></li>
+    </ul>
+  </section>)}
+
+/* ───────── Review (between rounds) ───────── */
+function ReviewTab({s}){
+  const r1=s.r1,rv=s.rev,answered=rv.correct;
+  const maxR=Math.max(...r1.R);
+  return(
+  <div>
+    <h2>Round 2: review Round 1</h2>
+    <p className="lede">Your crews finished in {plural(r1.project,'day')} for {money(r1.direct)}. Which crew held the schedule back?</p>
+    <div className="lob-wrap">
+      <LobChart starts={r1.starts} durs={r1.D} dom={Core.domain(r1.D)} plotK={6} chk={null} hover={null} svgRef={s.cmpRef} h={NOOP} dragI={null} finalLocked
+        focusI={answered?r1.slow[0]:null} label={answered?'bottleneck':null} cursor={s.simDay>0?s.simDay:null}/>
+    </div>
+    <div className="pick" role="group" aria-label="Bottleneck crew">
+      {TRADES.map((t,i)=>{const chosen=rv.picks.includes(i),right=r1.slow.includes(i);
+        return(<button key={t.k} disabled={answered} onClick={()=>s.pickBottleneck(i,right)}
+          className={'pick-b'+(chosen?(right?' right':' wrong'):'')+(answered&&right?' right':'')} style={{'--tc':tc(t.k)}}>
+          <span className="pick-n" style={{color:tc(t.k)}}>{t.name}</span>
+          <span className="muted">{plural(r1.D[i],'day')}</span>
+        </button>)})}
+    </div>
+    {!answered&&rv.picks.length>0&&<Callout lvl="warn">Not quite. Look at the chart: the slowest crew has the flattest line and takes the longest.</Callout>}
+    {answered&&<>
+      <Callout lvl="ok"><b>{r1.slow.map(i=>TRADES[i].name).join(' and ')} {r1.slow.length>1?'were':'was'} the bottleneck</b> at {fmt(r1.minR)} ft/day. It has the flattest line and the longest duration, so it adds the most days to the project.</Callout>
+      <h3 style={{margin:'14px 0 6px'}}>Crew rates</h3>
+      <div className="rates">
+        {TRADES.map((t,i)=><div className="rate-row" key={t.k}>
+          <span className="rate-n">{t.name}</span>
+          <span className="rate-bar"><i style={{width:(r1.R[i]/maxR*100)+'%',background:tc(t.k)}}/><em style={{left:(r1.minR/maxR*100)+'%'}}/></span>
+          <span className="rate-v">{fmt(r1.R[i])}</span>
+        </div>)}
+        <div className="muted" style={{fontSize:12.5,textAlign:'right'}}>ft/day · dashed mark = bottleneck rate</div>
+      </div>
+      <DonorPick s={s}/>
+    </>}
+  </div>)}
+
+function DonorPick({s}){
+  const r1=s.r1,rv=s.rev,opts=TRADES.map((t,i)=>i).filter(i=>!r1.slow.includes(i));
+  const fastest=opts.reduce((a,i)=>r1.R[i]>r1.R[a]?i:a,opts[0]),d=rv.donor,opt=s.opt;
+  const wins=i=>opt.byDonor(i),bestOf=i=>Math.min(...wins(i).map(o=>o.T));
+  return(<section style={{marginTop:16}}>
+    <h3 style={{marginBottom:4}}>Which crew can give up some of its budget?</h3>
+    <p className="muted" style={{fontSize:14,margin:'0 0 8px'}}>Round 2 has the same daily budget as Round 1 ({money(r1.daily)}). To speed up the bottleneck, another crew must give up machines.</p>
+    <div className="pick two" role="group" aria-label="Donor crew">
+      {opts.map(i=>{const t=TRADES[i];return(
+        <button key={t.k} onClick={()=>s.pickDonor(i)} aria-pressed={d===i}
+          className={'pick-b'+(d===i?(wins(i).length?' right':' wrong'):'')} style={{'--tc':tc(t.k)}}>
+          <span className="pick-n" style={{color:tc(t.k)}}>{t.name}</span>
+          <span className="muted">{fmt(r1.R[i])} ft/day · {money(Core.cost(t,r1.eq[t.k]))}/day</span>
+        </button>)})}
+    </div>
+    {d!=null&&(!wins(d).length
+      ?<Callout lvl="warn"><b>No mix with {TRADES[d].name.toLowerCase()} as the donor beats Round 1.</b> Pick the other crew.</Callout>
+      :d===fastest||bestOf(d)<=Math.min(...opts.map(bestOf))
+        ?<Callout lvl="ok"><b>Good choice.</b> {TRADES[d].name} can give up budget and still let Round 2 beat Round 1.</Callout>
+        :<Callout lvl="ok"><b>This can work.</b> Round 2 can beat Round 1 with {TRADES[d].name.toLowerCase()} as the donor, though {TRADES[opts.find(i=>i!==d)].name.toLowerCase()} allows a bigger saving.</Callout>)}
+    <div className="btn-row" style={{marginTop:12}}>
+      <button className="btn btn-primary" disabled={d==null||!wins(d).length} onClick={()=>{s.setActiveEq(TRADES[r1.slow[0]].k);s.setTab('equip')}}>Reallocate the budget</button>
+    </div>
+  </section>)}
+
+function Delta({a,b,fmtv,better}){
+  const d=b-a,pc=a?d/a*100:0,good=better==='lower'?d<0:better==='higher'?d>0:null;
+  const cls=d===0||good===null?'flat':good?'good':'bad';
+  return <span className={'delta '+cls}>{d===0?'no change':`${d<0?'▼':'▲'} ${fmtv(Math.abs(d))} (${Math.abs(pc)<1?'<1':Math.abs(pc).toFixed(0)}%)`}</span>;
+}
+
+/* ───────── total duration: Round 1 vs Round 2, drawn on one time axis ───────── */
+function DurCompare({a,b,bLive}){
+  const rows=[['Round 1',a],['Round 2',b]].filter(r=>r[1]);
+  const end=Math.max(...rows.map(r=>r[1].last)),dom=Math.max(10,Math.ceil(end/20)*20);
+  const pct=d=>(d/dom*100)+'%';
+  const step=dom<=100?10:20,ticks=[];for(let d=0;d<=dom;d+=step)ticks.push(d);
+  const diff=a&&b?b.project-a.project:null;
+  return(<section className="durc">
+    <div className="durc-head">
+      <h3>Total duration</h3>
+      {diff!=null&&<span className={'delta '+(diff<0?'good':diff>0?'bad':'flat')}>{diff===0?'no change':`${diff<0?'▼':'▲'} ${Math.abs(diff)} days (${Math.abs(diff/a.project*100).toFixed(0)}%)`}</span>}
+    </div>
+    {rows.map(([l,r])=>(
+      <div className="durc-row" key={l}>
+        <span className="rl">{l}</span>
+        <div className="durc-track">
+          {ticks.map(d=><i key={d} className="durc-grid" style={{left:pct(d)}}/>)}
+          {TRADES.map((t,i)=><span key={t.k} className="durc-seg" title={`${t.name}: day ${r.starts[t.k]} to day ${r.ends[i]}`}
+            style={{left:pct(r.starts[t.k]),width:pct(r.D[i]),background:tc(t.k)}}/>)}
+          <b className="durc-end" style={{left:pct(r.last)}}>{r.project} d{l==='Round 2'&&bLive?' (now)':''}</b>
+        </div>
+      </div>))}
+    <div className="durc-row"><span/><div className="durc-axis">{ticks.map(d=><span key={d} style={{left:pct(d)}}>{d}</span>)}</div></div>
+    <div className="durc-x">Time (days)</div>
+  </section>);
+}
+
+/* ───────── Round 1, read-only view (Round 2 can switch back to it) ───────── */
+function R1View({s}){
+  const r1=s.r1,b=s.plotK===6?roundStats(s.eq,s.starts):null;
+  const fake={...s,plotK:6,starts:r1.starts,D:r1.D,R:r1.R,eq:r1.eq};
+  return(<div className="sched">
+    <h2>Round 1 schedule</h2>
+    <p className="lede" style={{marginBottom:8}}>This round is finished and can't be edited. Press play on the right to replay it.</p>
+    <div className="lob-wrap"><LobChart starts={r1.starts} durs={r1.D} dom={Core.domain(r1.D)} plotK={6} chk={null} hover={null} svgRef={s.cmpRef} h={NOOP} dragI={null} finalLocked cursor={s.simDay>0?s.simDay:null}/></div>
+    <DurCompare a={r1} b={b} bLive={!s.doneR2}/>
+    <SchedTable s={fake} started={s.simDay>0}/>
+    <Budget s={fake}/>
+    <div className="btn-row"><button className="btn btn-primary" onClick={()=>s.setTab(s.lastR2Tab)}>Back to Round 2</button></div>
+  </div>);
+}
+
+function CompareTab({s}){
+  const a=s.r1,b=roundStats(s.eq,s.starts);
+  const kpis=[
+    {l:'Project duration',a:a.project,b:b.project,f:v=>plural(v,'day'),fd:v=>v+'d',better:'lower'},
+    {l:'Direct crew cost',a:a.direct,b:b.direct,f:money,fd:money,better:'lower'},
+    {l:'Daily cost',a:a.daily,b:b.daily,f:money,fd:money,better:null},
+    {l:'Slowest crew rate',a:a.minR,b:b.minR,f:v=>fmt(v)+' ft/day',fd:v=>fmt(v),better:'higher'}];
+  const maxR=Math.max(...a.R,...b.R),maxC=Math.max(a.direct,b.direct);
+  const dom=Math.max(Core.domain(a.D),Core.domain(b.D));
+  return(
+  <div className="cmp">
+    <h2>Round 1 vs Round 2</h2>
+    {(()=>{const sc=score(a,b.project,b.direct,s.opt);return(
+      <section className="scorecard">
+        <div className="sc-big"><b>{sc}</b><span>/ 100</span></div>
+        <div className="sc-rows">
+          <div><span className="muted">Duration</span> {plural(a.project,'day')} → <b>{plural(b.project,'day')}</b> <span className="muted">· best possible {s.opt.bestT}</span></div>
+          <div><span className="muted">Cost</span> {money(a.direct)} → <b>{money(b.direct)}</b> <span className="muted">· best possible {money(s.opt.bestC)}</span></div>
+          <div className="muted" style={{fontSize:12.5}}>{s.siteName} · 50 points for closing the gap to the best duration, 50 for the best cost.</div>
+        </div>
+      </section>)})()}
+    <DurCompare a={a} b={b}/>
+    <div className="kpis">
+      {kpis.map(k=><div className="kpi" key={k.l}>
+        <div className="kpi-l">{k.l}</div>
+        <div className="kpi-v"><span className="muted">{k.f(k.a)}</span> → <b>{k.f(k.b)}</b></div>
+        <Delta a={k.a} b={k.b} fmtv={k.fd} better={k.better}/>
+      </div>)}
+    </div>
+
+    <section className="block">
+      <h3>Schedules</h3>
+      <div className="lob-wrap"><LobChart starts={b.starts} durs={b.D} dom={dom} plotK={6} chk={null} hover={null} svgRef={s.cmpRef} h={NOOP} dragI={null} finalLocked ghost={{starts:a.starts,durs:a.D}}/></div>
+      <p className="muted legend-note"><span className="dash"/>Round 1 dashed <span className="solid"/>Round 2 solid</p>
+    </section>
+
+    <section className="block">
+      <h3>Crew rates (ft/day)</h3>
+      <div className="rates">
+        {TRADES.map((t,i)=><div className="rate-pair" key={t.k}>
+          <span className="rate-n">{t.name}</span>
+          <div>
+            <div className="rate-row2"><span className="rl">R1</span><span className="rate-bar"><i style={{width:(a.R[i]/maxR*100)+'%',background:tc(t.k),opacity:.4}}/></span><span className="rate-v">{fmt(a.R[i])}{a.slow.includes(i)&&<em className="slow-tag">slowest</em>}</span></div>
+            <div className="rate-row2"><span className="rl">R2</span><span className="rate-bar"><i style={{width:(b.R[i]/maxR*100)+'%',background:tc(t.k)}}/></span><span className="rate-v">{fmt(b.R[i])}{b.slow.includes(i)&&<em className="slow-tag">slowest</em>}</span></div>
+          </div>
+        </div>)}
+      </div>
+    </section>
+
+    <section className="block">
+      <h3>Budget</h3>
+      {[['Round 1',a],['Round 2',b]].map(([l,r])=><div className="bud-row" key={l}>
+        <span className="rl">{l}</span>
+        <div className="budget" style={{width:(r.direct/maxC*100)+'%'}}>
+          {TRADES.map((t,i)=>{const v=r.D[i]*Core.cost(t,r.eq[t.k]);return <div key={t.k} className="budget-seg" style={{width:(v/r.direct*100)+'%',background:tc(t.k)}} title={`${t.name}: ${money(v)}`}/>})}
+        </div>
+        <b className="bud-v">{money(r.direct)}</b>
+      </div>)}
+    </section>
+
+    {s.rev.donor!=null&&(()=>{const di=s.rev.donor,bi=a.slow[0],net=(b.D[di]-a.D[di])+(b.D[bi]-a.D[bi]);return(
+    <section className="block">
+      <h3>Reallocation</h3>
+      <table className="stable ledger">
+        <thead><tr><th>Crew</th><th>Daily cost</th><th>Days</th><th>Change</th></tr></thead>
+        <tbody>
+          {[di,bi].map(i=>{const t=TRADES[i],dl=b.D[i]-a.D[i],dc=Core.cost(t,b.eq[t.k])-Core.cost(t,a.eq[t.k]);return(
+            <tr key={t.k}><td><span className="sw" style={{background:tc(t.k),display:'inline-block',marginRight:8}}/>{t.name} <span className="muted">({i===di?'gave':'received'})</span></td>
+              <td>{dc>=0?'+':'−'}{money(Math.abs(dc))}</td><td>{a.D[i]} → {b.D[i]}</td>
+              <td className={dl>0?'bad-t':dl<0?'good-t':''}>{dl>0?'+':dl<0?'−':''}{Math.abs(dl)} d</td></tr>)})}
+          <tr className="proj"><td>Net</td><td>{(b.daily-a.daily)>=0?'+':'−'}{money(Math.abs(b.daily-a.daily))}</td><td></td><td className={net>0?'bad-t':net<0?'good-t':''}>{net>0?'+':net<0?'−':''}{Math.abs(net)} d</td></tr>
+        </tbody>
+      </table>
+    </section>)})()}
+
+    <section className="block">
+      <h3>What changed</h3>
+      <table className="stable chg">
+        <thead><tr><th>Crew</th><th>Round 1</th><th>Round 2</th><th>Days</th></tr></thead>
+        <tbody>{TRADES.map((t,i)=><tr key={t.k}>
+          <td><span className="sw" style={{background:tc(t.k),display:'inline-block',marginRight:8}}/>{t.name}</td>
+          <td>{fleetText(t,a.eq[t.k])}</td><td>{fleetText(t,b.eq[t.k])}</td><td>{a.D[i]} → {b.D[i]}</td></tr>)}</tbody>
+      </table>
+    </section>
+
+    <section className="block">
+      <h3>Reflection</h3>
+      <label className="field-label" htmlFor="plus">Plus: what worked in Round 2?</label>
+      <textarea id="plus" className="note" rows="2" value={s.refl.plus} onChange={ev=>s.setRefl({...s.refl,plus:ev.target.value})}/>
+      <label className="field-label" htmlFor="delta">Delta: what would you change next time?</label>
+      <textarea id="delta" className="note" rows="2" value={s.refl.delta} onChange={ev=>s.setRefl({...s.refl,delta:ev.target.value})}/>
+      {(()=>{const st=s.logStat.cmp,ready=s.refl.plus.trim()&&s.refl.delta.trim(),sent=st&&st!=='sending'&&!s.cmpDirty;return(
+        <div className="btn-row" style={{alignItems:'center'}}>
+          <button className="btn btn-primary" disabled={!ready||st==='sending'||sent} onClick={s.submitReflection}>{st&&st!=='sending'&&s.cmpDirty?'Submit update':'Submit reflection'}</button>
+          <span className="muted" style={{fontSize:13}}>{!ready?'Write a plus and a delta to submit.':st==='sending'?'Saving…':st==='sent'?'✓ Saved':st==='queued'?'Saved on this device; will retry':st==='off'?'Recorded (not connected to a sheet)':''}</span>
+        </div>)})()}
+    </section>
+  </div>)}
+
+/* ───────── 3D site simulation ───────── */
+const HEX={exc:0x2F6FB5,pipe:0x2A8A55,back:0xD4701C};
+const L3=240, ftX=ft=>ft/PJ*L3, SPACING=6.5;
+const LANE={exc:{z:3.2,ry:0.45,tagY:8},pipe:{z:5.8,ry:0,tagY:12.5},back:{z:0,ry:0,tagY:6.5}};
+
+function crewAt(i,starts,durs,t){
+  const k=TRADES[i].k,s=starts[k],d=durs[i];
+  if(s==null||t<s)return {st:'wait',ft:0,x:-14,s,d};
+  if(t>=s+d)return {st:'done',ft:PJ,x:L3+14,s,d};
+  const ft=Core.pos(s,d,t);return {st:'work',ft,x:ftX(ft),s,d};
+}
+function crewStatus(c){
+  return c.st==='wait'?`Starts at day ${c.s}`:c.st==='done'?`Finished at day ${c.s+c.d}`:`${fmt(c.ft)} of ${fmt(PJ)} ft`;
+}
+function matCache(){const c={};return (col,o)=>{const key=col+JSON.stringify(o||{});return c[key]||(c[key]=new THREE.MeshStandardMaterial(Object.assign({color:col,roughness:.7},o||{})))}}
+function part(geo,mat,x,y,z){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;return m}
+const BOX=(a,b,c)=>new THREE.BoxGeometry(a,b,c);
+
+function buildExcavator(M,col){
+  const g=new THREE.Group(),dark=M(0x2B2F33),steel=M(0x4A5056),glass=M(0xBFDCEB,{roughness:.2,metalness:.3}),body=M(col);
+  g.add(part(BOX(4.2,.8,.9),dark,0,.4,1.0));g.add(part(BOX(4.2,.8,.9),dark,0,.4,-1.0));
+  const up=new THREE.Group();up.position.y=.8;g.add(up);
+  up.add(part(BOX(3,1.1,2.4),body,-.2,.55,0));
+  up.add(part(BOX(.8,1,2.4),steel,-1.9,.55,0));
+  up.add(part(BOX(1.2,1.2,1),body,.6,1.65,.65));
+  up.add(part(BOX(.06,.7,.8),glass,1.23,1.75,.65));
+  const arm=new THREE.Group();arm.position.set(1.1,1.2,-.35);up.add(arm);
+  arm.add(part(BOX(3.4,.42,.42),body,1.7,0,0));
+  const stick=new THREE.Group();stick.position.set(3.4,0,0);arm.add(stick);
+  stick.add(part(BOX(2.6,.32,.32),body,1.3,0,0));
+  stick.add(part(BOX(.8,.8,.9),steel,2.7,-.2,0));
+  arm.rotation.z=.5;stick.rotation.z=-1.9;
+  return {g,tick:t=>{arm.rotation.z=.45+.18*Math.sin(t*2.2);stick.rotation.z=-1.85+.3*Math.sin(t*2.2+1.1)}};
+}
+function buildCrane(M,col){
+  const g=new THREE.Group(),dark=M(0x1E2327),steel=M(0x4A5056),glass=M(0xBFDCEB,{roughness:.2,metalness:.3}),body=M(col),pipeM=M(0x9AA4A8,{metalness:.4,roughness:.4});
+  g.add(part(BOX(5,.9,2.4),steel,0,1.05,0));
+  [-1.7,1.7].forEach(x=>[-1.15,1.15].forEach(z=>{const w=part(new THREE.CylinderGeometry(.62,.62,.5,14),dark,x,.62,z);w.rotation.x=Math.PI/2;g.add(w)}));
+  const up=new THREE.Group();up.position.y=1.5;up.rotation.y=1.14;g.add(up);
+  up.add(part(BOX(2.4,1.1,2),body,-.7,.55,0));
+  up.add(part(BOX(1,1.1,.8),body,.9,.55,.75));
+  up.add(part(BOX(.06,.6,.6),glass,1.42,.65,.75));
+  const boom=new THREE.Group();boom.position.set(.2,.9,0);boom.rotation.z=.78;up.add(boom);
+  boom.add(part(BOX(8,.45,.45),body,4,0,0));
+  const tipX=.2+8*Math.cos(.78),tipY=.9+8*Math.sin(.78);
+  const cable=part(new THREE.CylinderGeometry(.05,.05,1,4),dark,tipX,0,0);cable.castShadow=false;up.add(cable);
+  const load=new THREE.Group();load.rotation.y=-1.14;load.position.x=tipX;up.add(load);
+  const pc=part(new THREE.CylinderGeometry(.45,.45,4.5,14),pipeM,0,0,0);pc.rotation.z=Math.PI/2;load.add(pc);
+  const set=h=>{cable.scale.y=h;cable.position.y=tipY-h/2;load.position.y=tipY-h-.5};set(4.6);
+  return {g,tick:t=>set(4.6+1.2*Math.sin(t*1.5))};
+}
+function buildDozer(M,col){
+  const g=new THREE.Group(),dark=M(0x2B2F33),steel=M(0x4A5056),glass=M(0xBFDCEB,{roughness:.2,metalness:.3}),bodyM=M(col);
+  g.add(part(BOX(3.6,.7,.8),dark,0,.35,.95));g.add(part(BOX(3.6,.7,.8),dark,0,.35,-.95));
+  const body=new THREE.Group();g.add(body);
+  body.add(part(BOX(2.6,1.2,1.8),bodyM,-.2,1.25,0));
+  body.add(part(BOX(1.1,1.1,1.2),bodyM,-.6,2.4,0));
+  body.add(part(BOX(.06,.6,1),glass,-.03,2.5,0));
+  body.add(part(BOX(.28,1.1,2.6),steel,2.15,.65,0));
+  body.add(part(BOX(1.2,.2,.2),steel,1.5,.9,.75));body.add(part(BOX(1.2,.2,.2),steel,1.5,.9,-.75));
+  body.add(part(new THREE.CylinderGeometry(.09,.09,.8,6),dark,.6,2.2,-.5));
+  return {g,tick:t=>{body.position.y=.04*Math.sin(t*9)}};
+}
+const BUILD={exc:buildExcavator,pipe:buildCrane,back:buildDozer};
+
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function textSprite(txt){
+  const c=document.createElement('canvas');c.width=256;c.height=96;const x=c.getContext('2d');
+  x.fillStyle='rgba(255,255,255,.92)';x.fillRect(0,0,256,96);x.fillStyle='#15242B';
+  x.font='600 46px "Barlow Semi Condensed", system-ui, sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,128,50);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthWrite:false}));sp.scale.set(9,3.4,1);return sp;
+}
+
+
+/* view.mode 'sim': crews follow the schedule at dayRef. view.mode 'static': crews are posed from view.crews. */
+function crewsFromView(L,t){
+  if(L.mode==='sim')return [0,1,2].map(i=>Object.assign(crewAt(i,L.starts,L.durs,t),{vis:true,anim:null,tag:null}));
+  return L.crews.map(c=>{const ft=clamp(c.ft,0,PJ);return {st:c.anim?'work':'pose',ft,x:ftX(ft),vis:c.vis,anim:c.anim,tag:c.tag}});
+}
+
+function Sim3D({eq,view,dayRef,children,hidden}){
+  const mount=useRef(null),tags=useRef([]),dayTag=useRef(null),api=useRef(null);
+  const live=useRef(view);live.current=view;
+  const [err,setErr]=useState(null);
+  const fleetSig=JSON.stringify(eq);
+
+  useEffect(()=>{
+    const el=mount.current;if(!el)return;
+    if(typeof THREE==='undefined'){setErr('The 3D library did not load. Check your connection and reload.');return}
+    let renderer;
+    try{renderer=new THREE.WebGLRenderer({antialias:true});}catch(e){setErr('This browser could not start the 3D view because WebGL is off or unavailable.');return}
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+    el.appendChild(renderer.domElement);
+    const scene=new THREE.Scene(),SKY=0xA9CFE4;scene.background=new THREE.Color(SKY);scene.fog=new THREE.Fog(SKY,260,640);
+    const camera=new THREE.PerspectiveCamera(42,1,.5,1500);
+    const M=matCache();
+    scene.add(new THREE.HemisphereLight(0xE4F1FF,0x6B7D4F,.78));
+    const sun=new THREE.DirectionalLight(0xFFF3DD,1.05);sun.position.set(L3/2+70,140,90);sun.target.position.set(L3/2,0,0);
+    sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-170,right:170,top:120,bottom:-120,near:1,far:520});
+    scene.add(sun);scene.add(sun.target);
+    const flat=(w,d,col,x,y,z)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),M(col,{roughness:.95}));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);m.receiveShadow=true;scene.add(m);return m};
+    flat(1600,1000,0x7FA35E,L3/2,0,0);
+    flat(L3+34,20,0xC9B08A,L3/2,.02,0);
+    flat(L3+160,6,0x5B6166,L3/2,.03,16);
+    flat(26,18,0xA9A49A,-17,.04,3);flat(26,18,0xA9A49A,L3+17,.04,3);
+    const span=(geo,mat,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(0,y,z);m.castShadow=true;m.receiveShadow=true;m.visible=false;scene.add(m);return m};
+    const trench=span(BOX(1,.12,2.4),M(0x4A3222,{roughness:1}),.07,0);trench.castShadow=false;
+    const spoil=span(BOX(1,1.2,2.4),M(0x8C6844,{roughness:1}),.6,-3.1);
+    const pg=new THREE.CylinderGeometry(.45,.45,1,14);pg.rotateZ(Math.PI/2);
+    const pipe=span(pg,M(0x9AA4A8,{metalness:.4,roughness:.4}),.5,0);
+    const fill=span(BOX(1,1,3.4),M(0xA5835B,{roughness:1}),.5,0);
+    const setSpan=(m,a,b)=>{if(b-a<.05){m.visible=false;return}m.visible=true;m.scale.x=b-a;m.position.x=(a+b)/2};
+    const pinG=new THREE.ConeGeometry(.18,.8,6),pinM=M(0xF08A24),pins=[];
+    for(let x=3;x<L3;x+=6){const p=part(pinG,pinM,x,.4,1.8);p.castShadow=false;scene.add(p);pins.push(p)}
+    const postG=new THREE.CylinderGeometry(.15,.15,5,8),postM=M(0xF4F4F0);
+    ['Start','Mile 1','Mile 2','3 miles'].forEach((txt,m)=>{const x=m*L3/3;scene.add(part(postG,postM,x,2.5,-9));const sp=textSprite(txt);sp.position.set(x,6.6,-9);scene.add(sp)});
+    const stackG=new THREE.CylinderGeometry(.45,.45,4.5,12);stackG.rotateZ(Math.PI/2);const stackM=M(0x9AA4A8,{metalness:.4,roughness:.4});
+    [40,120,200].forEach(x0=>{for(let r=0;r<3;r++)for(let c=0;c<4-r;c++)scene.add(part(stackG,stackM,x0,.45+r*.78,10+c*.92+r*.46))});
+    const R=rng(7),trunkG=new THREE.CylinderGeometry(.2,.3,2.4,6),trunkM=M(0x6B4A2F),coneG=new THREE.ConeGeometry(2.2,5,7),ballG=new THREE.SphereGeometry(2.3,8,6);
+    const leaf=[M(0x3F6B3A),M(0x4F7D45),M(0x5E8A4C)];
+    for(let i=0;i<170;i++){
+      const x=-70+R()*(L3+140),side=R()<.5?-1:1,z=side<0?-(18+R()*80):(24+R()*75),k=.8+R()*.8;
+      const tr=part(trunkG,trunkM,x,1.2*k,z);tr.scale.setScalar(k);scene.add(tr);
+      const cr=part(R()<.55?coneG:ballG,leaf[Math.floor(R()*3)],x,(R()<.55?4.6:4.2)*k,z);cr.scale.setScalar(k);scene.add(cr);
+    }
+    api.current={scene,M,fleets:[[],[],[]]};
+
+    const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cur={tx:L3/2,dist:235,phi:.92,theta:-.3},user={th:0,ph:0,zoom:1};let lastCam=null;
+    const cv=renderer.domElement;let drag=null;
+    const pd=e=>{drag={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId)}catch(_){} };
+    const pm=e=>{if(!drag)return;user.th-=(e.clientX-drag.x)*.006;user.ph-=(e.clientY-drag.y)*.004;drag={x:e.clientX,y:e.clientY}};
+    const pu=()=>{drag=null};
+    const wh=e=>{e.preventDefault();user.zoom=clamp(user.zoom*(1+e.deltaY*.001),.3,2.2)};
+    cv.addEventListener('pointerdown',pd);cv.addEventListener('pointermove',pm);cv.addEventListener('pointerup',pu);cv.addEventListener('pointercancel',pu);cv.addEventListener('wheel',wh,{passive:false});
+    let W=1,H=1;
+    const size=()=>{W=el.clientWidth||1;H=el.clientHeight||1;renderer.setSize(W,H,false);camera.aspect=W/H;camera.updateProjectionMatrix()};
+    size();const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(size):null;if(ro)ro.observe(el);
+    const clock=new THREE.Clock(),v=new THREE.Vector3();let raf;
+    const frame=()=>{
+      raf=requestAnimationFrame(frame);
+      const L=live.current,t=dayRef.current||0,et=clock.getElapsedTime();
+      const S=crewsFromView(L,t);
+      const eL=ftX(S[0].ft),pL=ftX(S[1].ft),bL=ftX(S[2].ft);
+      setSpan(trench,0,eL);setSpan(spoil,bL,eL);setSpan(pipe,bL,pL);setSpan(fill,0,bL);
+      for(const p of pins)p.visible=p.position.x>eL+.5;
+      api.current.fleets.forEach((fl,i)=>{const c=S[i],k=TRADES[i].k,ln=LANE[k];
+        fl.forEach((m,j)=>{const x=c.st==='done'?c.x+j*SPACING:c.x-j*SPACING;
+          m.g.visible=!!c.vis;
+          m.g.position.set(x,(k==='back'&&c.ft>0&&x>.5&&x<=bL+.5)?1:0,ln.z);m.g.rotation.y=ln.ry;
+          if(c.st==='work'&&!reduce)m.tick(et+j*.7)})});
+      if(L.cam!==lastCam){lastCam=L.cam;user.th=0;user.ph=0;user.zoom=1}
+      const ci=TRADES.findIndex(x=>x.k===L.cam);
+      const want=ci<0?{tx:L3/2,dist:235,phi:.92,theta:-.3}:{tx:clamp(S[ci].x,-12,L3+12),dist:L.mode==='sim'?48:40,phi:1.02,theta:-.6};
+      const a=reduce?1:.08;for(const key in want)cur[key]+=(want[key]-cur[key])*a;
+      const th=cur.theta+user.th,ph=clamp(cur.phi+user.ph,.22,1.45),ds=cur.dist*user.zoom;
+      camera.position.set(cur.tx+ds*Math.sin(ph)*Math.sin(th),ds*Math.cos(ph),ds*Math.sin(ph)*Math.cos(th));camera.lookAt(cur.tx,0,0);
+      renderer.render(scene,camera);
+      S.forEach((c,i)=>{const tg=tags.current[i];if(!tg)return;const ln=LANE[TRADES[i].k];
+        if(!c.vis){tg.style.display='none';return}
+        v.set(c.x,ln.tagY,ln.z).project(camera);
+        if(v.z>1||Math.abs(v.x)>1.15||Math.abs(v.y)>1.15){tg.style.display='none';return}
+        tg.style.display='';tg.style.transform=`translate(${(v.x*.5+.5)*W}px,${(-v.y*.5+.5)*H}px) translate(-50%,-100%)`;
+        const st=c.tag||crewStatus(c);if(tg.lastChild.textContent!==st)tg.lastChild.textContent=st});
+      if(dayTag.current){
+        dayTag.current.style.display=L.mode==='sim'?'':'none';
+        const d='Day '+Math.floor(t+1e-9);if(dayTag.current.textContent!==d)dayTag.current.textContent=d}
+    };
+    frame();
+    return ()=>{cancelAnimationFrame(raf);if(ro)ro.disconnect();cv.removeEventListener('wheel',wh);renderer.dispose();if(cv.parentNode)cv.parentNode.removeChild(cv);api.current=null};
+  },[]);
+
+  useEffect(()=>{
+    const A=api.current;if(!A)return;
+    A.fleets.forEach(fl=>fl.forEach(m=>A.scene.remove(m.g)));
+    A.fleets=TRADES.map(t=>machinesFor(t,eq[t.k]).map(ty=>{const b=BUILD[t.k](A.M,HEX[t.k]);b.g.scale.setScalar(ty.size);A.scene.add(b.g);return b}));
+  },[fleetSig,err]);
+
+  return(
+  <div className="three" ref={mount} style={hidden?{display:'none'}:undefined}>
+    {err&&<div className="three-err"><p>{err}</p></div>}
+    {!err&&TRADES.map((t,i)=><div key={t.k} ref={el=>tags.current[i]=el} className="tag3d" style={{borderLeftColor:tc(t.k),display:'none'}}><b style={{color:tc(t.k)}}>{t.name}</b><span></span></div>)}
+    {!err&&<div className="hint3d">Drag to look around. Scroll to zoom.</div>}
+    {children}
+  </div>);
+}
+
+/* ───────── controls under the 3D view (Schedule tab) ───────── */
+function SimHud({s}){
+  const {simDay:t,endDay,starts,D,eq,cam,setCam}=s;
+  const C=TRADES.map((tr,i)=>crewAt(i,starts,D,t));
+  const spent=TRADES.reduce((a,tr,i)=>a+clamp(t-starts[tr.k],0,D[i])*Core.cost(tr,eq[tr.k]),0);
+  const total=TRADES.reduce((a,tr,i)=>a+D[i]*Core.cost(tr,eq[tr.k]),0);
+  return(<>
+    <div className="hud hud-tl">
+      <div className="hud-day"><b>Day {Math.floor(t+1e-9)}</b><span>of {endDay}</span></div>
+      <div className="hud-cost"><b>{money(spent)}</b> <span>of {money(total)}</span></div>
+      <ul className="hud-crews">
+        {C.map((c,i)=>{const tr=TRADES[i];return(
+          <li key={tr.k} className={'c-'+c.st}>
+            <span className="nm" style={{color:tc(tr.k)}}>{tr.name}</span>
+            <span className="val">{c.st==='wait'?`day ${c.s}`:c.st==='done'?'Done':Math.round(c.ft/PJ*100)+'%'}</span>
+            <span className="mini"><i style={{width:(c.ft/PJ*100)+'%',background:tc(tr.k)}}/></span>
+          </li>)})}
+      </ul>
+    </div>
+    {s.cmpR&&<div className="hud hud-tc" role="group" aria-label="Replay round">
+      {[1,2].map(n=><button key={n} className={'cam'+(s.cmpR===n?' on':'')} aria-pressed={s.cmpR===n} onClick={()=>s.setCmpR(n)}>Round {n}</button>)}
+    </div>}
+    <div className="hud hud-tr" role="group" aria-label="Camera">
+      {[['overview','Whole site'],...TRADES.map(x=>[x.k,x.name])].map(([k,l])=>(
+        <button key={k} className={'cam'+(cam===k?' on':'')} aria-pressed={cam===k} onClick={()=>setCam(k)}>
+          {k!=='overview'&&<i style={{background:tc(k)}}/>}{l}
+        </button>))}
+    </div>
+  </>);
+}
+
+const LANE_Y=i=>4+i*15,LANE_H=9;
+function Timeline({s}){
+  const {simDay:t,endDay,starts,D}=s,ref=useRef(null),dragging=useRef(false);
+  const pct=d=>(d/endDay*100)+'%';
+  const seek=ev=>{const r=ref.current.getBoundingClientRect();if(!r.width)return;s.seek(clamp((ev.clientX-r.left)/r.width,0,1)*endDay)};
+  const step=endDay<=60?10:20,ticks=[];for(let d=0;d<=endDay;d+=step)ticks.push(d);
+  return(
+  <div className="tlw">
+    <div className="tl-ytitle" aria-hidden="true">Crew</div>
+    <div className="tl-ylabels" aria-hidden="true">
+      {TRADES.map((tr,i)=><span key={tr.k} style={{top:(LANE_Y(i)-4)+'px',color:tc(tr.k)}}>{tr.name}</span>)}
+    </div>
+    <div className="tl" ref={ref} role="slider" tabIndex="0" aria-label="Simulation day" aria-valuemin="0" aria-valuemax={endDay} aria-valuenow={Math.floor(t)}
+      onPointerDown={ev=>{dragging.current=true;try{ev.currentTarget.setPointerCapture(ev.pointerId)}catch(e){}seek(ev)}}
+      onPointerMove={ev=>{if(dragging.current)seek(ev)}}
+      onPointerUp={()=>{dragging.current=false}} onPointerCancel={()=>{dragging.current=false}}
+      onKeyDown={ev=>{const d={ArrowLeft:-1,ArrowRight:1,PageDown:-10,PageUp:10}[ev.key];if(d){ev.preventDefault();s.seek(clamp(Math.floor(t+1e-9)+d,0,endDay))}}}>
+      {TRADES.map((tr,i)=><div key={tr.k} className="tl-lane" style={{top:LANE_Y(i)+'px',height:LANE_H+'px'}}>
+        <i style={{left:pct(starts[tr.k]),width:pct(D[i]),background:tc(tr.k)}}/>
+      </div>)}
+      {ticks.map(d=><div key={'g'+d} className="tl-grid" style={{left:pct(d)}}/>)}
+      <div className="tl-done" style={{width:pct(t)}}/>
+      <div className="tl-head" style={{left:pct(t)}}/>
+      {ticks.map(d=><span key={d} className="tl-tick" style={{left:pct(d)}}>{d}</span>)}
+    </div>
+    <div className="tl-xtitle" aria-hidden="true">Time (days)</div>
+  </div>);
+}
+
+function SimBar({s}){
+  const {playing,simDay:t,endDay,speed,setSpeed}=s,done=t>=endDay;
+  return(
+  <div className="tbar">
+    <button className="tb-play" onClick={s.togglePlay} aria-label={playing?'Pause':done?'Replay':'Play'}>{playing?'❚❚':done?'↺':'▶'}</button>
+    <Timeline s={s}/>
+    <div className="tb-speedw">
+      <span className="tb-label">Speed</span>
+      <div className="tb-speed" role="group" aria-label="Speed">
+        {[[4,'0.5×'],[8,'1×'],[16,'2×'],[32,'4×']].map(([v,l])=><button key={v} className={speed===v?'on':''} aria-pressed={speed===v} title={`${v} days per second`} onClick={()=>setSpeed(v)}>{l}</button>)}
+      </div>
+    </div>
+  </div>);
+}
+
+/* ───────── NPC: Rosa, the site superintendent, speaks to the current task ───────── */
+function RosaFace(){return(
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <circle cx="32" cy="32" r="31" fill="#3B5560"/>
+    <rect x="16" y="46" width="32" height="18" rx="8" fill="#E9A23B"/>
+    <rect x="22" y="47" width="4" height="17" fill="#F5F0E6" opacity=".85"/><rect x="38" y="47" width="4" height="17" fill="#F5F0E6" opacity=".85"/>
+    <rect x="27" y="38" width="10" height="10" rx="3" fill="#B97A57"/>
+    <ellipse cx="32" cy="31" rx="12" ry="13" fill="#C98B66"/>
+    <path d="M20 31 q0 -9 12 -9 q12 0 12 9 v6 q-2 -7 -2 -9 q-10 2 -20 0 q0 2 -2 9z" fill="#3A2A22"/>
+    <circle cx="27.5" cy="32" r="1.6" fill="#1E1A18"/><circle cx="36.5" cy="32" r="1.6" fill="#1E1A18"/>
+    <path d="M28 37.5 q4 3 8 0" stroke="#6E3B2B" strokeWidth="1.6" fill="none" strokeLinecap="round"/>
+    <path d="M17 24 q15 -18 30 0 z" fill="#F1B80C"/><rect x="14" y="22.5" width="36" height="4" rx="2" fill="#C99700"/>
+    <rect x="30" y="9" width="4" height="10" rx="2" fill="#C99700"/>
+  </svg>)}
+
+function Npc({line}){
+  const [open,setOpen]=useState(true),[n,setN]=useState(0);
+  const text=line?line.text:'';
+  useEffect(()=>{
+    const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce){setN(text.length);return}
+    setN(0);let i=0;const id=setInterval(()=>{i+=2;setN(Math.min(i,text.length));if(i>=text.length)clearInterval(id)},16);
+    return ()=>clearInterval(id);
+  },[text]);
+  useEffect(()=>{if(line&&line.mood==='alert')setOpen(true)},[text]);
+  if(!line)return null;
+  return(
+  <div className={'npc'+(open?'':' closed')+(line.mood?' '+line.mood:'')}>
+    <button className="npc-face" onClick={()=>setOpen(o=>!o)} aria-label={open?'Hide Rosa':'Show Rosa'} title={open?'Hide':'Rosa has something to say'}><RosaFace/>{!open&&<i className="npc-dot"/>}</button>
+    {open&&<div className="npc-bubble" role="status" aria-live="polite">
+      <div className="npc-name">Rosa <span>Site superintendent</span></div>
+      <p aria-label={text}>{text.slice(0,n)}<span className="npc-ghost" aria-hidden="true">{text.slice(n)}</span></p>
+    </div>}
+  </div>);
+}
+
+function npcLine(x){
+  const {tab,round,site,eq,activeEq,g,D,R,U,locked,plotK,starts,chk,ready,simDay,endDay,playing,r1,rev,opt,revise,overCap,changedR2,projT,projC,gatePass,doneR,cmpScore}=x;
+  const nm=i=>TRADES[i].name,lc=i=>TRADES[i].name.toLowerCase();
+  const say=(text,mood)=>({text,mood});
+  if(tab==='intro')return say(`Welcome to ${SITES[site].name}. I'm Rosa, your superintendent. Three crews, 3 miles each, one after another. Each crew starts only when the one ahead has finished. Let's get going.`);
+  if(tab==='r1view')return say(`This is Round 1, kept for reference. Use the switch above to go back to Round 2.`);
+  if(tab==='equip'&&round===1){
+    const i=TRADES.findIndex(t=>t.k===activeEq),k=activeEq,need=D[i],gi=g[k];
+    if(TRADES.every((t,j)=>locked[t.k]&&g[t.k]===D[j]&&meets(site,j,eq)))return say(`All three crews are set. On to the schedule.`,'good');
+    {const tg=targetOf(site,i),r=R[i],c=Core.cost(TRADES[i],eq[k]);
+     if(!(r===tg.r&&c===tg.c)){
+       if(!U[i])return say(`${nm(i)} needs to do ${fmt(tg.r)} ft a day for ${money(tg.c)} a day. Pick the machines.`);
+       if(r===tg.r)return say(`Right speed, but ${money(c)} a day. Find a mix that costs ${money(tg.c)}.`,'alert');
+       return say(`That's ${fmt(r)} ft a day. We need ${fmt(tg.r)} for ${money(tg.c)} a day. ${r<tg.r?'Add':'Take out'} some capacity.`,r>tg.r?'alert':undefined);
+     }}
+    if(locked[k]&&gi===need)return say(`${nm(i)} needs ${need} days. Move on to the next crew.`,'good');
+    if(gi>need)return say(`Too far. ${gi} days takes ${nm(i).toLowerCase()} past 15,840 ft. Back it up.`,'alert');
+    if(gi===need)return say(`That's it, ${need} days. Lock it in.`,'good');
+    return say(`Base rate matched: ${fmt(R[i])} ft per day. How many days to cover 15,840 ft? Slide until the bar is full.`,'good');
+  }
+  if(tab==='review'){
+    if(!rev.correct)return rev.picks.length?say(`Not that one. Look for the flattest line: that's the slowest crew.`,'alert'):say(`Round 1 took ${r1.project} days. Look at the chart. Which crew held us back?`);
+    const b=r1.slow[0];
+    if(rev.donor==null)return say(`Right, ${lc(b)}. We can't spend more per day, so another crew has to give up some budget. Which one?`);
+    return say(`OK, ${lc(rev.donor)} gives, ${lc(b)} gets. Let's reallocate.`,'good');
+  }
+  if(tab==='equip'&&round===2){
+    const b=r1.slow[0],d=rev.donor;
+    const open=TRADES.filter((t,j)=>!(locked[t.k]&&g[t.k]===D[j]));
+    if(!changedR2)return say(`Speed up ${lc(b)} with money you free up from ${lc(d)}.`);
+    if(overCap)return say(`We're ${money(dailyOf(eq)-r1.daily)} a day over budget. Trim ${lc(d)} some more.`,'alert');
+    if(open.length)return say(`Fill the bar for ${open.map(t=>t.name.toLowerCase()).join(' and ')}, so we know the new days.`);
+    if(projT>=r1.project)return say(`That makes the job ${projT===r1.project?'no shorter':'longer'}: ${projT} days against ${r1.project}. ${nm(b)} has to gain more days than ${lc(d)} loses.`,'alert');
+    if(projC>=r1.direct)return say(`Faster, but it costs ${money(projC-r1.direct)} more. Try machines with a lower cost per foot.`,'alert');
+    return say(`That beats Round 1: ${projT} days and ${money(projC)}. Let's fix the schedule.`,'good');
+  }
+  if(tab==='lob'){
+    if(plotK<6){
+      const i=Math.floor(plotK/2);
+      if(plotK%2===0)return i===0?say(`Click the day excavation starts. Day 0 is fine.`):say(`Now ${lc(i)}. It can't start until ${lc(i-1)} finishes at day ${starts[TRADES[i-1].k]+D[i-1]}. Click the start.`);
+      return say(`${nm(i)} needs ${D[i]} days. Start plus duration: snap the end.`);
+    }
+    if(round===2&&revise.length){const r=revise[0];return say(`${nm(r.i)} has to start the moment ${lc(r.i-1)} finishes. Drag it to day ${r.target}.`,'alert');}
+    if(chk&&!chk.clear){const pi=chk.pairs.findIndex(p=>p.conflict),c=chk.pairs[pi];return say(`${nm(pi+1)} starts before ${lc(pi)} finishes. Drag it to day ${c.eP} or later.`,'alert');}
+    if(ready&&simDay>=endDay&&endDay>0)return round===1?say(`Round 1 done: ${Math.max(...TRADES.map((t,i)=>starts[t.k]+D[i]))} days. I think we can do better. Start Round 2.`,'good')
+      :say(`Round 2 done: ${projT} days against ${r1.project}. Let's compare.`,'good');
+    if(playing)return say(`Crews are rolling. Watch the cursor on the chart follow the site.`);
+    if(simDay>0)return say(`Paused on day ${Math.floor(simDay)}. Press play when you're ready.`);
+    return say(`The schedule is clean. Press Play and watch the site.`,'good');
+  }
+  if(tab==='cmp')return cmpScore!=null?say(`Score: ${cmpScore} out of 100. The best possible here was ${opt.bestT} days and ${money(opt.bestC)}. Write down what worked in the plus and delta boxes.`,'good'):null;
+  return null;
+}
+
+/* ───────── Data logging to Google Sheets ─────────
+   Paste the Apps Script web app URL below, or add ?log=<url> to the game link. Empty = logging off. */
+const LOG_URL_DEFAULT='https://script.google.com/macros/s/AKfycbwXjT84zdrQ4kOYwmduH8qXG8eOAXUo59rF9-x5KASofv3_cg0DtfMAMFEwC-FAAFGq/exec';
+const LOG_URL=(()=>{try{const q=new URLSearchParams(location.search).get('log');if(q)return q}catch(e){}return LOG_URL_DEFAULT})();
+const SESSION_ID=(()=>{try{return crypto.randomUUID()}catch(e){return 'S'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}})();
+const r2d=(v,n)=>Math.round(v*Math.pow(10,n||2))/Math.pow(10,n||2);
+const pct=(a,b)=>a?r2d((b-a)/a*100,1):0;                         // change from a to b, %
+const CREW_HEX={exc:'#2F6FB5',pipe:'#2A8A55',back:'#D4701C'};
+
+/* a standalone LOB chart (fixed colours) so it renders the same in the sheet's image as on screen */
+function lobSvgString(st,label){
+  const W=760,H=440,ml=70,mr=24,mt=44,mb=72,pw=W-ml-mr,ph=H-mt-mb;
+  const end=Math.max(...TRADES.map((t,i)=>st.starts[t.k]+st.D[i])),dom=Math.max(10,Math.ceil((end+2)/10)*10);
+  const X=d=>ml+d/dom*pw,Y=f=>mt+ph-f/PJ*ph,step=dom<=100?10:20;
+  let g='';
+  for(let d=0;d<=dom;d+=step)g+=`<line x1="${X(d)}" x2="${X(d)}" y1="${mt}" y2="${mt+ph}" stroke="#E2E7E8"/><text x="${X(d)}" y="${mt+ph+18}" font-size="12" text-anchor="middle" fill="#55666E">${d}</text>`;
+  for(let m=0;m<=3;m++)g+=`<line x1="${ml}" x2="${ml+pw}" y1="${Y(m*5280)}" y2="${Y(m*5280)}" stroke="#E2E7E8"/><text x="${ml-8}" y="${Y(m*5280)+4}" font-size="12" text-anchor="end" fill="#55666E">${m?m+' mi':'0'}</text>`;
+  let lines='';
+  TRADES.forEach((t,i)=>{const s0=st.starts[t.k],e0=s0+st.D[i],c=CREW_HEX[t.k];
+    lines+=`<line x1="${X(s0)}" y1="${Y(0)}" x2="${X(e0)}" y2="${Y(PJ)}" stroke="${c}" stroke-width="3.5" stroke-linecap="round"/><circle cx="${X(s0)}" cy="${Y(0)}" r="5" fill="${c}"/><circle cx="${X(e0)}" cy="${Y(PJ)}" r="5" fill="${c}"/>`;
+    lines+=`<rect x="${ml+i*230}" y="${H-24}" width="12" height="12" rx="2" fill="${c}"/><text x="${ml+18+i*230}" y="${H-14}" font-size="12" fill="#15242B">${t.name}: day ${s0}–${e0}, ${fmt(st.R[i])} ft/d</text>`;});
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="Arial, sans-serif"><rect width="${W}" height="${H}" fill="#fff"/><text x="${ml}" y="26" font-size="16" font-weight="700" fill="#15242B">${label}</text>${g}<line x1="${ml}" x2="${ml+pw}" y1="${Y(0)}" y2="${Y(0)}" stroke="#55666E"/><line x1="${ml}" x2="${ml}" y1="${mt}" y2="${Y(0)}" stroke="#55666E"/><text x="${ml+pw/2}" y="${mt+ph+36}" font-size="12" text-anchor="middle" fill="#55666E">Time (days)</text>${lines}</svg>`;
+}
+function svgToPng(svg){
+  return new Promise(res=>{
+    setTimeout(()=>res(''),4000);
+    try{const img=new Image();img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.width;c.height=img.height;c.getContext('2d').drawImage(img,0,0);res(c.toDataURL('image/png'))}catch(e){res('')}};
+      img.onerror=()=>res('');img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}catch(e){res('')}
+  });
+}
+
+/* one sheet row per completed round */
+function roundFields(ctx){
+  const {st,round,site,player,attempt,misses,secs,rev,r1}=ctx,f={};
+  f['Session ID']=SESSION_ID;f['Player ID']=player;f['Site']=SITES[site].name;f['Round']=round;f['Attempt']=attempt;
+  TRADES.forEach((t,i)=>{const e=st.eq[t.k],c=Core.cost(t,e);
+    f[`${t.name} equipment`]=fleetText(t,e);f[`${t.name} machines`]=Core.units(t,e);
+    f[`${t.name} rate (ft/day)`]=st.R[i];f[`${t.name} daily cost ($)`]=c;f[`${t.name} duration (days)`]=st.D[i];
+    f[`${t.name} start (day)`]=st.starts[t.k];f[`${t.name} end (day)`]=st.ends[i];f[`${t.name} cost ($)`]=st.D[i]*c;});
+  const ss=Core.stats(st.R);
+  f['Project duration (days)']=st.project;f['Direct cost ($)']=st.direct;f['Daily cost ($)']=st.daily;
+  f['Bottleneck']=st.slow.map(i=>TRADES[i].name).join(' + ');f['RMR']=r2d(ss.rmr,3);f['CV']=r2d(ss.cv,3);
+  f['LOB data']=JSON.stringify(TRADES.map((t,i)=>({crew:t.name,start:st.starts[t.k],end:st.ends[i],rate:st.R[i]})));
+  f['Plotting misses']=misses;f['Time on round (s)']=secs;
+  if(round===2&&rev&&r1){f['Bottleneck picks']=rev.picks.map(i=>TRADES[i].name).join(' > ');f['Donor']=rev.donor!=null?TRADES[rev.donor].name:'';
+    f['Donor picks']=(rev.donorPicks||[]).map(i=>TRADES[i].name).join(' > ');f['Hints used']=rev.hints||0;}
+  return f;
+}
+/* one sheet row comparing both rounds */
+function compareFields(ctx){
+  const {a,b,site,player,refl,score,attempt}=ctx,f={};
+  const sa=Core.stats(a.R),sb=Core.stats(b.R);
+  f['Session ID']=SESSION_ID;f['Player ID']=player;f['Site']=SITES[site].name;f['Submission']=attempt;
+  f['R1 project duration (days)']=a.project;f['R2 project duration (days)']=b.project;
+  f['Time improvement (%)']=r2d((a.project-b.project)/a.project*100,1);
+  TRADES.forEach((t,i)=>{
+    f[`${t.name} R1 rate (ft/day)`]=a.R[i];f[`${t.name} R2 rate (ft/day)`]=b.R[i];
+    f[`${t.name} productivity improvement (%)`]=pct(a.R[i],b.R[i]);
+    f[`${t.name} time improvement (%)`]=r2d((a.D[i]-b.D[i])/a.D[i]*100,1);});
+  const P=st=>3*PJ/st.project;                                   // overall productivity: all work ÷ project days
+  f['Overall productivity R1 (ft/day)']=r2d(P(a),1);f['Overall productivity R2 (ft/day)']=r2d(P(b),1);
+  f['Overall productivity improvement (%)']=pct(P(a),P(b));
+  f['R1 direct cost ($)']=a.direct;f['R2 direct cost ($)']=b.direct;f['Cost change (%)']=pct(a.direct,b.direct);
+  f['R1 RMR']=r2d(sa.rmr,3);f['R2 RMR']=r2d(sb.rmr,3);f['R1 CV']=r2d(sa.cv,3);f['R2 CV']=r2d(sb.cv,3);
+  f['Score (/100)']=score;f['Plus']=refl.plus.trim();f['Delta']=refl.delta.trim();
+  return f;
+}
+/* send to the sheet; failures wait in this browser and retry on the next send */
+const QKEY='lob-log-queue';
+function readQ(){try{return JSON.parse(localStorage.getItem(QKEY)||'[]')}catch(e){return []}}
+function writeQ(q){try{localStorage.setItem(QKEY,JSON.stringify(q.slice(-20)))}catch(e){}}
+async function postOne(body){
+  await fetch(LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+}
+async function sendLog(body){
+  if(!LOG_URL)return 'off';
+  const q=readQ();q.push(body);writeQ(q);
+  const left=[];
+  for(const item of q){try{await postOne(item)}catch(e){left.push(item)}}
+  writeQ(left);
+  return left.length?'queued':'sent';
+}
+
+/* ───────── App ───────── */
+const PREVIEW_FT=2600;
+function App(){
+  const [tab,setTab]=useState('intro');
+  const [site]=useState(pickSite);
+  const [eq,setEq]=useState({exc:{},pipe:{},back:{}});
+  const [activeEq,setActiveEq]=useState('exc');
+  const [g,setG]=useState({exc:0,pipe:0,back:0});
+  const [locked,setLocked]=useState({exc:false,pipe:false,back:false});
+  const [starts,setStarts]=useState({exc:null,pipe:null,back:null});
+  const [plotK,setPlotK]=useState(0);
+  const [msg,setMsg]=useState(null);
+  const [misses,setMisses]=useState(0);
+  const [hover,setHover]=useState(null);
+  const [dragI,setDragI]=useState(null);
+  const svgRef=useRef(null);
+  const [simDay,setSimDay]=useState(0);
+  const simRef=useRef(0);
+  const [playing,setPlaying]=useState(false);
+  const [speed,setSpeed]=useState(8);
+  const [cam,setCam]=useState('overview');
+  const [round,setRound]=useState(1);
+  const [r1,setR1]=useState(null);
+  const [rev,setRev]=useState({picks:[],correct:false,note:'',donor:null,donorPicks:[],hints:0});
+  const [refl,setRefl]=useState({plus:'',delta:''});
+  const [player,setPlayer]=useState('');
+  const [logStat,setLogStat]=useState({1:null,2:null,cmp:null});
+  const attempts=useRef({1:0,2:0,cmp:0}),missTotal=useRef(0),roundT0=useRef(null),cmpSentSig=useRef('');
+  const [doneR,setDoneR]=useState({1:false,2:false});
+  const [cmpR,setCmpR]=useState(2);
+  const cmpRef=useRef(null);
+
+  const R=TRADES.map(t=>Core.rate(t,eq[t.k])),U=TRADES.map(t=>Core.units(t,eq[t.k])),D=TRADES.map(t=>Core.dur(t,eq[t.k]));
+  const fleetOk=U.every(u=>u>=1);
+  const durDone=TRADES.every((t,i)=>locked[t.k]&&g[t.k]===D[i]&&D[i]>0)&&(round===2||[0,1,2].every(i=>meets(site,i,eq)));
+  const DOM=round===2&&r1?Math.max(Core.domain(D),Core.domain(r1.D),Math.ceil((Math.max(...TRADES.map((t,i)=>r1.starts[t.k]+r1.D[i]))+Math.max(...D)+5)/20)*20):Core.domain(D);
+  const changedR2=round===2&&r1?r1.slow.some(i=>R[i]>r1.R[i]):false;     // bottleneck sped up
+  const overCap=round===2&&r1?dailyOf(eq)>r1.daily:false;
+  const opt=React.useMemo(()=>r1?r2Options(r1):null,[r1]);
+  const projT=round===2&&r1&&fleetOk?projectR2(r1,D):null,projC=round===2&&fleetOk?directOf(eq):null;
+  const gatePass=round===2&&r1&&changedR2&&!overCap&&durDone&&projT<r1.project&&projC<r1.direct;
+  const prevRef=useRef(null);
+  const chk=plotK===6?Core.check(TRADES.map(t=>starts[t.k]),D):null;
+  const clear=!!(chk&&chk.clear);
+  /* Round 2: every crew after the bottleneck must start exactly when the crew ahead now finishes */
+  const bIdx=round===2&&r1?Math.min(...r1.slow,...(rev.donor!=null&&R[rev.donor]!==r1.R[rev.donor]?[rev.donor]:[])):-1;   // first crew whose rate changed
+  const revise=(round===2&&r1&&plotK===6)?TRADES.map((t,i)=>(i>0&&i>bIdx)?{i,target:starts[TRADES[i-1].k]+D[i-1],cur:starts[t.k]}:null).filter(x=>x&&x.cur!==x.target):[];
+  const ready=clear&&revise.length===0;
+  /* the run being shown: the current round, or the round picked for replay on Compare */
+  const ctx=((tab==='cmp'&&cmpR===1)||tab==='review'||tab==='r1view')&&r1?{eq:r1.eq,starts:r1.starts,D:r1.D}:{eq,starts,D};
+  const endDay=(tab==='cmp'||tab==='review'||tab==='r1view'||plotK===6)?Math.max(...TRADES.map((t,i)=>ctx.starts[t.k]+ctx.D[i])):0;
+  const simDone=ready&&endDay>0&&simDay>=endDay;
+  const curSig=JSON.stringify(starts)+'|'+D.join(',');
+  const schedSig=curSig+'|'+tab+'|'+cmpR;
+  useEffect(()=>{setPlaying(false);simRef.current=0;setSimDay(0)},[schedSig]);
+  useEffect(()=>{setDoneR(x=>({...x,[round]:false}))},[curSig]);
+  useEffect(()=>{if(tab==='lob'&&simDone&&!doneR[round]){setDoneR(x=>({...x,[round]:true}));logRound(round)}},[tab,simDone]);
+  useEffect(()=>{if(tab!=='intro'&&roundT0.current==null)roundT0.current=Date.now()},[tab]);
+  async function logRound(n){
+    if(!LOG_URL)return;
+    const st=roundStats(eq,starts);attempts.current[n]++;
+    const fields=roundFields({st,round:n,site,player,attempt:attempts.current[n],misses:missTotal.current,
+      secs:roundT0.current?Math.round((Date.now()-roundT0.current)/1000):'',rev,r1});
+    setLogStat(x=>({...x,[n]:'sending'}));
+    const png=await svgToPng(lobSvgString(st,`${player||'Player'} · ${SITES[site].name} · Round ${n} · ${st.project} days`));
+    const res=await sendLog({type:'round',sheet:'Rounds',fields,lobPng:png,chartName:`${player||SESSION_ID}_${SITES[site].name}_R${n}_a${attempts.current[n]}.png`});
+    setLogStat(x=>({...x,[n]:res}));
+  }
+  async function submitReflection(){
+    if(!r1)return;
+    const b=roundStats(eq,starts),sc=opt?score(r1,b.project,b.direct,opt):'';
+    attempts.current.cmp++;
+    setLogStat(x=>({...x,cmp:'sending'}));
+    const fields=compareFields({a:r1,b,site,player,refl,score:sc,attempt:attempts.current.cmp});
+    const res=LOG_URL?await sendLog({type:'compare',sheet:'Comparison',fields}):'off';
+    cmpSentSig.current=refl.plus+'|'+refl.delta;
+    setLogStat(x=>({...x,cmp:res}));
+  }
+  useEffect(()=>{if(tab!=='lob'&&tab!=='cmp'&&tab!=='review'&&tab!=='r1view')setPlaying(false)},[tab]);
+  const [lastR2Tab,setLastR2Tab]=useState('review');
+  useEffect(()=>{if(round===2&&tab!=='r1view')setLastR2Tab(tab)},[tab,round]);
+  useEffect(()=>{
+    if(!playing)return;
+    let raf,last=performance.now(),lastQ=-1;
+    const step=now=>{
+      const dt=Math.min((now-last)/1000,.1);last=now;
+      let d=Math.min(simRef.current+dt*speed,endDay);simRef.current=d;
+      const q=Math.round(d*5)/5;if(q!==lastQ){lastQ=q;setSimDay(q)}
+      if(d>=endDay){setSimDay(endDay);setPlaying(false);return}
+      raf=requestAnimationFrame(step)};
+    raf=requestAnimationFrame(step);
+    return ()=>cancelAnimationFrame(raf);
+  },[playing,speed,endDay]);
+  function snapStart(i,v){setStarts(x=>({...x,[TRADES[i].k]:v}))}
+  function togglePlay(){if(!ready&&tab!=='cmp'&&tab!=='review'&&tab!=='r1view')return;if(!playing&&simRef.current>=endDay){simRef.current=0;setSimDay(0)}setPlaying(p=>!p)}
+  function restart(){simRef.current=0;setSimDay(0);setPlaying(false)}
+  function scrub(ev){seek(+ev.target.value)}
+  function seek(v){simRef.current=v;setSimDay(Math.round(v*5)/5);setPlaying(false)}
+
+  function pickBottleneck(i,right){setRev(x=>({...x,picks:x.picks.includes(i)?x.picks:[...x.picks,i],correct:x.correct||right}))}
+  function setNote(v){setRev(x=>({...x,note:v}))}
+  function useHint(n){setRev(x=>({...x,hints:Math.max(x.hints||0,n)}))}
+  function pickDonor(i){if(r1&&rev.donor!=null&&rev.donor!==i){setEq(e=>({...e,[TRADES[rev.donor].k]:JSON.parse(JSON.stringify(r1.eq[TRADES[rev.donor].k]))}));const k=TRADES[rev.donor].k,j=rev.donor;setG(x=>({...x,[k]:r1.D[j]}));setLocked(x=>({...x,[k]:true}))}
+    setRev(x=>({...x,donor:i,donorPicks:[...(x.donorPicks||[]),i]}))}
+  function keepR1(snap){   // Round 2 starts from Round 1: same durations locked, same start dates plotted
+    const gg={},ll={};TRADES.forEach((t,i)=>{gg[t.k]=snap.D[i];ll[t.k]=true});
+    setG(gg);setLocked(ll);setStarts({...snap.starts});setPlotK(6);setMsg(null);setMisses(0);setHover(null);setPlaying(false);
+  }
+  function startRound2(){
+    const snap=roundStats(eq,starts);setR1(snap);setRound(2);keepR1(snap);missTotal.current=0;roundT0.current=Date.now();
+    setRev({picks:[],correct:false,note:'',donor:null,donorPicks:[],hints:0});setActiveEq(TRADES[snap.slow[0]].k);setCam('overview');setTab('review');
+  }
+  function resetFleet(){if(!r1)return;setEq(JSON.parse(JSON.stringify(r1.eq)));keepR1(r1)}
+  function resetPlot(){
+    if(round===2&&r1){setStarts({...r1.starts});setPlotK(6);setMsg(null);setMisses(0);setHover(null);setPlaying(false);return}setStarts({exc:null,pipe:null,back:null});setPlotK(0);setMsg(null);setMisses(0);setHover(null);setPlaying(false)}
+  function setCount(k,id,d){
+    setEq(e=>{const cur=(e[k][id]||0)+d;return {...e,[k]:{...e[k],[id]:Math.max(0,cur)}}});
+    setG(x=>({...x,[k]:0}));setLocked(x=>({...x,[k]:false}));resetPlot();
+  }
+  function setGuess(k,v){setG(x=>({...x,[k]:v}))}
+  function lockDur(k){setLocked(x=>({...x,[k]:true}))}
+  function unlockDur(k){setLocked(x=>({...x,[k]:false}));setG(x=>({...x,[k]:0}));resetPlot()}
+
+  /* chart pointer helpers */
+  function viewPt(ev){
+    const svg=svgRef.current,pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;
+    const m=svg.getScreenCTM();return m?pt.matrixTransform(m.inverse()):{x:0,y:0};
+  }
+  const dayAt=x=>(x-ML)/PW*DOM;
+  const ys=f=>MT+PH-f/PJ*PH;
+  function miss(text,lvl){setMsg({lvl:lvl||'bad',text});setMisses(m=>m+1);missTotal.current++}
+  function accept(next){setPlotK(next);setMsg(null);setMisses(0);setHover(null)}
+  function plotClick(ev){
+    if(plotK>=6)return;
+    const v=viewPt(ev),ti=Math.floor(plotK/2),t=TRADES[ti],isStart=plotK%2===0;
+    if(v.x<ML-6||v.x>ML+PW+6)return;
+    const d=Math.round(dayAt(v.x)),row=ys(isStart?0:PJ);
+    if(!isStart&&Math.abs(v.y-row)>28){miss(`End points sit on the 3 mi row. Click the highlighted row.`,'warn');return}
+    if(isStart){
+      if(d<0||d>DOM-D[ti]){miss(`Start ${t.name.toLowerCase()} between day 0 and day ${DOM-D[ti]}.`,'warn');return}
+      if(ti>0){const p=TRADES[ti-1],eP=starts[p.k]+D[ti-1];if(d<eP){miss(`${t.name} can start only after ${p.name.toLowerCase()} has finished, at day ${eP} or later.`,'warn');return}}
+      setStarts(x=>({...x,[t.k]:d}));
+      accept(plotK+1,`${t.name} starts at day ${d}.`);
+    }else{
+      const want=starts[t.k]+D[ti],diff=d-want;
+      if(diff===0)accept(plotK+1,plotK===5?'All lines plotted.':`${t.name}: ${span(starts[t.k],D[ti])}.`);
+      else if(Math.abs(diff)<=3)miss(`Close, but ${plural(Math.abs(diff),'day')} ${diff<0?'early':'late'}. End = ${starts[t.k]} + ${D[ti]}.`,'warn');
+      else miss(`Day ${d} is ${plural(Math.abs(diff),'day')} off. End = ${starts[t.k]} + ${D[ti]}.`);
+    }
+  }
+  function snapEnd(){if(plotK<6&&plotK%2===1)accept(plotK+1)}
+  function undoStart(){if(plotK%2!==1)return;const k=TRADES[Math.floor(plotK/2)].k;setStarts(x=>({...x,[k]:null}));setPlotK(plotK-1);setMsg(null);setMisses(0)}
+  function startDrag(i,ev){
+    ev.stopPropagation();
+    try{svgRef.current.setPointerCapture(ev.pointerId)}catch(e){}
+    const v=viewPt(ev);setDragI({i,off:dayAt(v.x)-starts[TRADES[i].k]});
+  }
+  const h={
+    down:ev=>{if(plotK<6)plotClick(ev)},
+    move:ev=>{
+      const v=viewPt(ev);
+      if(dragI){
+        const i=dragI.i,k=TRADES[i].k,lo=i>0?starts[TRADES[i-1].k]+D[i-1]:0;
+        const sNew=Math.max(lo,clamp(Math.round(dayAt(v.x)-dragI.off),0,DOM-D[i]));
+        if(sNew!==starts[k])setStarts(x=>({...x,[k]:sNew}));
+      }else if(plotK<6){
+        const d=Math.round(dayAt(v.x));setHover(d>=0&&d<=DOM?d:null);
+      }
+    },
+    up:ev=>{if(dragI){try{svgRef.current.releasePointerCapture(ev.pointerId)}catch(e){}setDragI(null)}},
+    leave:()=>{if(!dragI)setHover(null)},
+    startDrag
+  };
+
+  /* what the 3D view shows */
+  const idxActive=TRADES.findIndex(t=>!locked[t.k]);
+  let view;
+  if(tab==='lob'||tab==='cmp'||tab==='review'||tab==='r1view')view={mode:'sim',starts:ctx.starts,durs:ctx.D,cam};
+  else if(tab==='equip'){
+    /* the selected crew: machines appear as they are added, then work along the 3 miles as the days slider moves */
+    const i=TRADES.findIndex(t=>t.k===activeEq),k=activeEq,gk=g[k],raw=gk*R[i],full=locked[k]&&gk===D[i];
+    const ft=full?PJ:Math.min(raw,PJ);
+    view={mode:'static',cam:activeEq,crews:TRADES.map((t,j)=>({ft:j<i?PJ:j===i?ft:0,vis:j===i,anim:j===i&&U[j]>0&&ft<PJ,
+      tag:j===i?(!U[j]?'No machines yet':full?`Full at ${plural(D[j],'day')}`:raw>=PJ?'Past 15,840 ft':gk>0?`Day ${gk}: ${fmt(ft)} ft`:`${plural(U[j],'machine')} · ${fmt(R[j])} ft/day`):''}))};
+  }else if(false){
+    if(idxActive<0)view={mode:'static',cam:'overview',crews:TRADES.map((t,j)=>({ft:PJ,vis:true,anim:false,tag:plural(D[j],'day')}))};
+    else{
+      const a=idxActive,gk=g[TRADES[a].k],raw=gk*R[a],ft=Math.min(raw,PJ);
+      view={mode:'static',cam:TRADES[a].k,crews:TRADES.map((t,j)=>({ft:j<a?PJ:j===a?ft:0,vis:j===a,anim:j===a&&ft>0&&ft<PJ,
+        tag:j===a?(raw>=PJ?(gk===D[a]?`Full at ${plural(D[a],'day')}`:'Past 15,840 ft'):`Day ${gk}: ${fmt(ft)} ft`):''}))};
+    }
+  }else view={mode:'static',cam:'overview',crews:TRADES.map(()=>({ft:0,vis:false,anim:false,tag:''}))};
+
+  const state={player,setPlayer,logStat,submitReflection,cmpDirty:cmpSentSig.current!==refl.plus+'|'+refl.delta,
+    site,siteName:SITES[site].name,opt,projT,projC,gatePass,useHint,tab,setTab,eq,activeEq,setActiveEq,setCount,g,setGuess,locked,lockDur,unlockDur,R,U,D,fleetOk,DOM,
+    starts,plotK,msg,misses,chk,snapEnd,undoStart,resetPlot,hover,svgRef,h,dragI:dragI?dragI.i:null,
+    simDay,endDay,playing,speed,setSpeed,cam,setCam,togglePlay,restart,scrub,seek,
+    revise,ready,bIdx,snapStart,canRedo:i=>round===1||(r1&&(r1.slow.includes(i)||rev.donor===i)),lastR2Tab,doneR2:doneR[2],
+    round,r1,rev,pickBottleneck,pickDonor,overCap,setNote,startRound2,resetFleet,changedR2,prevRef,refl,setRefl,cmpRef};
+  const npc=npcLine({tab,round,site,eq,activeEq,g,D,R,U,locked,plotK,starts,chk,ready,simDay,endDay,playing,r1,rev,opt,revise,overCap,changedR2,projT,projC,gatePass,doneR,
+    cmpScore:tab==='cmp'&&r1&&opt?score(r1,roundStats(eq,starts).project,roundStats(eq,starts).direct,opt):null});
+  const simState={...state,eq:ctx.eq,starts:ctx.starts,D:ctx.D,cmpR:tab==='cmp'?cmpR:null,setCmpR};
+
+  const tabs=round===1?[
+    {id:'intro',label:'Intro',n:'i',ok:true,done:false},
+    {id:'equip',label:'Crews',n:1,ok:true,done:fleetOk&&durDone},
+    {id:'lob',label:'Schedule',n:2,ok:fleetOk&&durDone,done:doneR[1]}
+  ]:[
+    {id:'intro',label:'Intro',n:'i',ok:true,done:false},
+    {id:'review',label:'Review',n:1,ok:true,done:rev.correct},
+    {id:'equip',label:'Reallocate',n:2,ok:rev.correct&&rev.donor!=null,done:gatePass},
+    {id:'lob',label:'Schedule',n:3,ok:rev.correct&&gatePass,done:doneR[2]},
+    {id:'cmp',label:'Compare',n:4,ok:doneR[2]&&ready,done:false}
+  ];
+
+  return(
+  <div className={'app'+(tab==='lob'||tab==='cmp'||tab==='r1view'?' wide':'')}>
+    <div className="left">
+      <div className="brand">
+        <div className="brand-title">Line of Balance: Pipeline</div>
+        <div className="brand-sub">College Station Water Pipeline · {SITES[site].name}</div>
+        <div className="rounds" role="tablist" aria-label="Rounds">
+          {(()=>{
+            const viewing=round===2&&tab==='r1view'?1:round;
+            const d1=r1?r1.project:(plotK===6?Math.max(...TRADES.map((t,i)=>starts[t.k]+D[i]))-Math.min(...TRADES.map(t=>starts[t.k])):null);
+            const d2=round===2&&plotK===6?Math.max(...TRADES.map((t,i)=>starts[t.k]+D[i]))-Math.min(...TRADES.map(t=>starts[t.k])):null;
+            const items=[{n:1,d:d1,ok:round===2,go:()=>setTab('r1view')},{n:2,d:d2,ok:round===2,go:()=>setTab(lastR2Tab==='r1view'?'review':lastR2Tab)}];
+            return(<>
+              {items.map(x=><button key={x.n} role="tab" aria-selected={viewing===x.n} className={'rnd'+(viewing===x.n?' on':'')+(x.n<round?' past':'')}
+                disabled={!x.ok||viewing===x.n} onClick={x.go}>
+                Round {x.n}{x.d!=null&&<span className="rnd-d">{x.d} d</span>}
+              </button>)}
+              {d1!=null&&d2!=null&&<span className={'rnd-diff '+(d2<d1?'good':d2>d1?'bad':'')}>{d2===d1?'same duration':`${d2<d1?'▼':'▲'} ${Math.abs(d2-d1)} d`}</span>}
+            </>)})()}
+        </div>
+      </div>
+      <div className={'tabs'+(tab==='r1view'?' dim':'')} role="tablist">
+        {tabs.map(x=>(
+          <button key={x.id} role="tab" aria-selected={tab===x.id} disabled={!x.ok} className={'tab'+(tab===x.id?' on':'')+(x.done?' done':'')} onClick={()=>setTab(x.id)}>
+            <span className="dot">{x.done?'✓':x.n}</span>{x.label}
+          </button>))}
+      </div>
+      {LOG_URL&&<div className="logbar">Results save to the study sheet{logStat[1]==='sent'?' · Round 1 ✓':''}{logStat[2]==='sent'?' · Round 2 ✓':''}{logStat.cmp==='sent'?' · Reflection ✓':''}</div>}
+      <div className="scroll">
+        {tab==='intro'&&<IntroTab s={state}/>}
+        {tab==='equip'&&<EquipTab s={state}/>}
+        {tab==='lob'&&<ScheduleTab s={state}/>}
+        {tab==='review'&&<ReviewTab s={state}/>}
+        {tab==='cmp'&&<CompareTab s={state}/>}
+        {tab==='r1view'&&r1&&<R1View s={state}/>}
+      </div>
+    </div>
+    <div className="right">
+      <Sim3D eq={ctx.eq} view={view} dayRef={simRef}>{((tab==='lob'&&ready)||tab==='cmp'||((tab==='review'||tab==='r1view')&&r1))&&<SimHud s={simState}/>}<Npc line={npc}/></Sim3D>
+      {tab==='lob'&&(ready?<SimBar s={simState}/>:<p className="caption">{round===2?'Crews wait at the staging area until every start date after the changed crew is revised.':'Crews wait at the staging area until every crew starts after the one ahead has finished.'}</p>)}
+      {(tab==='cmp'||((tab==='review'||tab==='r1view')&&r1))&&<SimBar s={simState}/>}
+    </div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+</script>
+</body>
+</html>
