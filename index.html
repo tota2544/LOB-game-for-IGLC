@@ -1588,8 +1588,7 @@ function npcLine(x){
 
 /* ───────── Data logging to Google Sheets ─────────
    Paste the Apps Script web app URL below, or add ?log=<url> to the game link. Empty = logging off. */
-const LOG_URL_DEFAULT='https://script.google.com/macros/s/AKfycbwXjT84zdrQ4kOYwmduH8qXG8eOAXUo59rF9-x5KASofv3_cg0DtfMAMFEwC-FAAFGq/exec';
-const LOG_URL=(()=>{try{const q=new URLSearchParams(location.search).get('log');if(q)return q}catch(e){}return LOG_URL_DEFAULT})();
+const LOG_URL_DEFAULT='https://script.google.com/macros/s/AKfycbw_5OVZimNvjX2WI_k7EGGdaCDh-JpOunsIJrkuFzTbnoldIa9VcxL4XjbLEPXB5sIc/exec';const LOG_URL=(()=>{try{const q=new URLSearchParams(location.search).get('log');if(q)return q}catch(e){}return LOG_URL_DEFAULT})();
 const SESSION_ID=(()=>{try{return crypto.randomUUID()}catch(e){return 'S'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}})();
 const r2d=(v,n)=>Math.round(v*Math.pow(10,n||2))/Math.pow(10,n||2);
 const pct=(a,b)=>a?r2d((b-a)/a*100,1):0;                         // change from a to b, %
