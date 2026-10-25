@@ -139,6 +139,7 @@ input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:3
 .how .n{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--panel);display:grid;place-items:center;font:600 14px 'Barlow Semi Condensed',sans-serif}
 .how b{display:block;font-weight:600}
 .how span.t{color:var(--muted);font-size:14px}
+.reading.one{grid-template-columns:1fr;max-width:300px}
 .reading{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
 .reading figure{margin:0;border:1px solid var(--rule);border-radius:8px;padding:6px 6px 8px;background:var(--panel)}
 .reading figcaption{font-size:13px;text-align:center;color:var(--muted)}
@@ -272,7 +273,7 @@ input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:3
 .durc-row{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;margin:6px 0}
 .durc-track{position:relative;height:22px;background:var(--soft);border-radius:5px;margin-right:46px}
 .durc-grid{position:absolute;top:0;bottom:0;width:1px;background:var(--rule)}
-.durc-seg{position:absolute;top:3px;bottom:3px;border-radius:3px}
+.durc-seg{position:absolute;top:3px;bottom:3px;border-radius:3px;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.35)}
 .durc-end{position:absolute;top:50%;transform:translate(6px,-50%);font-size:13px;white-space:nowrap}
 .durc-axis{position:relative;height:14px;margin-right:46px}
 .durc-axis span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--muted)}
@@ -341,6 +342,10 @@ input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:3
 .dur-card{border-top-width:4px;margin-top:-4px}
 .dur-done{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);border-left:4px solid;border-radius:8px;padding:8px 12px;margin:-4px 0 12px;background:var(--good-soft)}
 .assigned{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px;font-size:14.5px}
+.out-row{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;padding:9px 12px;border-radius:10px;background:var(--lane);margin:6px 0;font-size:15px}
+.out-row.ok{background:color-mix(in srgb,var(--good) 14%,transparent)}
+.out-row.no{background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.out-l{font-weight:600}.out-row.ok .out-s{color:var(--good);font-weight:600}.out-row.no .out-s{color:var(--bad);font-weight:600}
 .gate{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;margin:12px 0;background:var(--panel)}
 .gate h3{margin-bottom:6px}
 .gate-row{display:grid;grid-template-columns:70px auto 14px auto 1fr;gap:8px;align-items:baseline;padding:6px 8px;border-radius:8px;margin:4px 0;background:var(--soft);font-size:14px}
@@ -385,6 +390,46 @@ input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:3
 .target-now{display:flex;flex-direction:column;align-items:flex-end;font-size:13.5px}
 .target.hit{background:var(--good-soft)}
 .logbar{font-size:12px;color:var(--muted);padding:4px 18px;border-bottom:1px solid var(--rule);background:var(--soft)}
+.tip{position:relative;display:inline-flex;vertical-align:middle;margin-left:4px}
+.tip-btn{appearance:none;width:18px;height:18px;border-radius:50%;border:1px solid var(--rule);background:var(--soft);color:var(--muted);font:italic 600 11px/1 Georgia,serif;cursor:pointer;padding:0;display:grid;place-items:center}
+.tip-btn:hover,.tip.open .tip-btn{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.tip-btn:focus-visible{outline:2px solid var(--flag-edge);outline-offset:2px}
+.tip-box{position:absolute;left:0;top:calc(100% + 6px);z-index:20;width:max-content;max-width:240px;background:var(--ink);color:var(--panel);font:400 13px/1.4 'Barlow',sans-serif;font-style:normal;padding:7px 10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);visibility:hidden;opacity:0;transition:opacity .12s;pointer-events:none;white-space:normal;text-align:left}
+.tip-box .muted{color:inherit;opacity:.75}
+.tip-r .tip-box{left:auto;right:0}
+.tip:hover .tip-box,.tip.open .tip-box,.tip-btn:focus-visible+.tip-box{visibility:visible;opacity:1}
+.more{margin-top:6px}
+.more>summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--muted);list-style:none;display:inline-flex;align-items:center;gap:6px;padding:3px 0}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary::before{content:'▸';font-size:12px;transition:transform .15s}
+.more[open]>summary::before{transform:rotate(90deg)}
+.more>summary:hover{color:var(--ink)}
+.more>summary:focus-visible{outline:2px solid var(--flag-edge);outline-offset:2px;border-radius:4px}
+.more-body{margin-top:8px}
+.target2{border:1px solid var(--rule);border-left:4px solid;border-radius:8px;padding:8px 12px 10px;margin-bottom:10px;background:var(--soft)}
+.target2.hit{background:var(--good-soft)}
+.target2-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.mbar{display:grid;grid-template-columns:52px 1fr 128px;gap:8px;align-items:center;font-size:13.5px;margin:4px 0}
+.mbar-l{font-weight:600}
+.mbar-track{position:relative;height:10px;border-radius:5px;background:var(--panel);border:1px solid var(--rule)}
+.mbar-track i{position:absolute;left:0;top:0;bottom:0;border-radius:5px;transition:width .15s}
+.mbar-track em{position:absolute;left:80%;top:-4px;bottom:-4px;border-left:2px dashed var(--ink)}
+.mbar-s{text-align:right;font-weight:600}
+.eq-name{font-weight:600;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.eq-l{display:flex;align-items:center;gap:12px}
+.mico{flex:0 0 54px;height:40px;display:flex;align-items:flex-end;justify-content:center;border-radius:8px;background:var(--soft);border:1px solid var(--rule);padding-bottom:3px}
+.eq-chip{display:inline-block;margin-top:3px;font-size:12.5px;font-weight:500;color:var(--muted);background:var(--soft);border:1px solid var(--rule);border-radius:999px;padding:1px 9px}
+.crew-line{font-size:13px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule)}
+.dur-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.dur-head h3{margin:0}
+.sum-line{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;margin-bottom:4px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{font-size:12px;font-weight:600;padding:2px 8px 2px 18px;border-radius:999px;border:1px solid var(--rule);position:relative;color:var(--muted)}
+.dot::before{content:'';position:absolute;left:7px;top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%);background:var(--rule)}
+.dot.d-half::before{background:var(--warn)}
+.dot.d-done::before{background:var(--good)}
+.dot.d-work::before{background:var(--tc)}
+.dot.d-done,.dot.d-work{color:var(--ink)}
 @media (max-width:900px){
   .npc{max-width:calc(100% - 20px)}
   .hud-tc{top:auto;bottom:70px}
@@ -433,10 +478,10 @@ window.Core=(function(){
   function dur(t,e){var r=rate(t,e);return r>0?Math.ceil(PJ/r):0}
   // footage reached at time t by a crew that starts at s and needs d days
   function pos(s,d,t){if(t<=s)return 0;if(t>=s+d)return PJ;return PJ*(t-s)/d}
-  // Finish-to-start: a crew may start only once the crew before it has fully finished (start >= predecessor end).
+  // Finish-to-start, no gap: a crew starts exactly on the day the crew before it finishes (start = predecessor end).
   function pairCheck(sP,dP,sF,dF){
     var eP=sP+dP,early=eP-sF;
-    return {conflict:early>1e-9,eP:eP,sF:sF,early:Math.max(0,early),wait:Math.max(0,-early)};
+    return {conflict:Math.abs(early)>1e-9,eP:eP,sF:sF,early:Math.max(0,early),wait:Math.max(0,-early)};
   }
   // starts, durs: arrays in trade order [exc,pipe,back]
   function check(starts,durs){
@@ -535,7 +580,7 @@ function machinesFor(t,e){
 }
 
 /* ───────── Line of Balance chart ───────── */
-const LW=620,LHT=450,ML=72,MR=22,MT=30,MB=50,PW=LW-ML-MR,PH=LHT-MT-MB;
+const LW=620,LHT=450,ML=72,MR=22,MT=30,MB=76,PW=LW-ML-MR,PH=LHT-MT-MB;
 
 function LobChart({starts,durs,dom,plotK,chk,hover,svgRef,h,dragI,finalLocked,mini,cursor,ghost,focusI,label,revise,moves}){
   const xs=d=>ML+d/dom*PW, ys=f=>MT+PH-f/PJ*PH;
@@ -565,32 +610,35 @@ function LobChart({starts,durs,dom,plotK,chk,hover,svgRef,h,dragI,finalLocked,mi
       </g>))}
     {[0.5,1.5,2.5].map(m=><text key={'h'+m} className="tick" x={ML-10} y={ys(m*5280)+4} textAnchor="end">{m} mi</text>)}
     {xt.map(d=><text key={d} className="ax" x={xs(d)} y={MT+PH+21} textAnchor="middle">{d}</text>)}
-    <text className="ax" x={ML+PW/2} y={LHT-10} textAnchor="middle">Time (days)</text>
+    <text className="ax" x={ML+PW/2} y={LHT-6} textAnchor="middle">Time (days)</text>
     <line x1={ML} x2={ML+PW} y1={ys(0)} y2={ys(0)} style={{stroke:'var(--muted)'}} strokeWidth="1.2"/>
     <line x1={ML} x2={ML} y1={MT} y2={ys(0)} style={{stroke:'var(--muted)'}} strokeWidth="1.2"/>
 
     {/* end preview while waiting for the end point */}
-    {plotting&&!isStart&&starts[TRADES[ti].k]!=null&&(()=>{const t=TRADES[ti],s0=starts[t.k],e0=s0+durs[ti];return(
+    {plotting&&!isStart&&starts[TRADES[ti].k]!=null&&(()=>{const t=TRADES[ti],s0=starts[t.k],e0=s0+durs[ti],x=xs(e0),y=ys(PJ);return(
       <g pointerEvents="none">
-        <line x1={xs(s0)} y1={ys(0)} x2={xs(e0)} y2={ys(PJ)} stroke={tc(t.k)} strokeWidth="2" strokeDasharray="6 5" opacity="0.6"/>
-        <circle cx={xs(e0)} cy={ys(PJ)} r="9" fill="none" stroke={tc(t.k)} strokeWidth="2" strokeDasharray="3 3"/>
+        <line x1={xs(s0)} y1={ys(0)} x2={x} y2={y} stroke={tc(t.k)} strokeWidth="2.5" strokeDasharray="6 6" opacity="0.55"/>
+        <circle className="pulse" cx={x} cy={y} r="14" fill="none" stroke={tc(t.k)} strokeWidth="3"/>
+        <circle cx={x} cy={y} r="5" fill={tc(t.k)}/>
+        <text className="lob-label halo" x={clamp(x,ML+70,ML+PW-70)} y={y+32} textAnchor="middle" fill={tc(t.k)} style={{fill:tc(t.k)}}>Click here · day {e0}</text>
+        <text className="tick halo" x={clamp(x,ML+70,ML+PW-70)} y={y+47} textAnchor="middle" style={{fill:'var(--muted)'}}>day {s0} + {durs[ti]} days</text>
       </g>)})()}
 
     {/* plotting guide */}
     {plotting&&isStart&&ti>0&&starts[TRADES[ti-1].k]!=null&&(()=>{const p=TRADES[ti-1],eP=starts[p.k]+durs[ti-1];return(
       <g pointerEvents="none">
-        <rect x={ML} y={MT} width={xs(eP)-ML} height={PH} style={{fill:'var(--bad)'}} opacity="0.07"/>
-        <line x1={xs(eP)} x2={xs(eP)} y1={MT} y2={ys(0)} style={{stroke:'var(--bad)'}} strokeWidth="1.6" strokeDasharray="5 4"/>
-        <text className="tick halo" x={xs(eP)+6} y={MT+14} style={{fill:'var(--bad)',fontWeight:600}}>{p.name} finishes day {eP}</text>
+        <line x1={xs(eP)} x2={xs(eP)} y1={MT} y2={ys(0)} stroke={tc(TRADES[ti].k)} strokeWidth="1.8" strokeDasharray="5 4"/>
+        <circle className="pulse" cx={xs(eP)} cy={ys(0)} r="9" fill="none" stroke={tc(TRADES[ti].k)} strokeWidth="2.5"/>
+        <text className="tick halo" x={xs(eP)+6} y={MT+14} style={{fill:tc(TRADES[ti].k),fontWeight:600}}>{p.name} finishes day {eP}: start here</text>
       </g>)})()}
     {plotting&&(()=>{const t=TRADES[ti],row=ys(isStart?0:PJ);return(
       <g pointerEvents="none">
         <rect x={ML} y={row-14} width={PW} height="28" rx="6" fill={tc(t.k)} opacity="0.14"/>
         <line x1={ML} x2={ML+PW} y1={row} y2={row} stroke={tc(t.k)} strokeWidth="1.4" strokeDasharray="6 4"/>
-        {hover!=null&&<g>
+        {hover!=null&&isStart&&<g>
           <line x1={xs(hover)} x2={xs(hover)} y1={MT} y2={ys(0)} stroke={tc(t.k)} strokeWidth="1" strokeDasharray="2 4"/>
           <circle cx={xs(hover)} cy={row} r="8" fill="none" stroke={tc(t.k)} strokeWidth="2"/>
-          <text className="lob-label halo" x={xs(hover)} y={row+(isStart?-16:26)} textAnchor="middle" fill={tc(t.k)}>{isStart?`Start at day ${hover}`:`Day ${hover}`}</text>
+          <text className="lob-label halo" x={xs(hover)} y={row+(isStart?-16:26)} textAnchor="middle" fill={tc(t.k)}>{isStart?`Start at day ${hover}`:`Finish day ${hover}`}</text>
         </g>}
       </g>)})()}
 
@@ -600,10 +648,10 @@ function LobChart({starts,durs,dom,plotK,chk,hover,svgRef,h,dragI,finalLocked,mi
       const P=TRADES[pi],F=TRADES[pi+1],sF=c.sF,eP=c.eP;
       return(
       <g key={pi} pointerEvents="none">
-        <rect x={xs(sF)} y={MT} width={xs(eP)-xs(sF)} height={PH} style={{fill:'var(--bad)'}} opacity="0.16"/>
+        <rect x={xs(Math.min(sF,eP))} y={MT} width={Math.abs(xs(eP)-xs(sF))} height={PH} style={{fill:'var(--bad)'}} opacity="0.16"/>
         <line x1={xs(eP)} x2={xs(eP)} y1={MT} y2={ys(0)} style={{stroke:'var(--bad)'}} strokeWidth="1.8" strokeDasharray="5 4"/>
         <circle className="pulse" cx={xs(sF)} cy={ys(0)} r="13" fill="none" style={{stroke:'var(--bad)'}} strokeWidth="3"/>
-        <text className="lob-label halo" x={clamp((xs(sF)+xs(eP))/2,ML+80,ML+PW-80)} y={MT+18+pi*20} textAnchor="middle" style={{fill:'var(--bad)'}}>{F.name} starts {plural(c.early,'day')} too early</text>
+        <text className="lob-label halo" x={clamp((xs(sF)+xs(eP))/2,ML+80,ML+PW-80)} y={MT+18+pi*20} textAnchor="middle" style={{fill:'var(--bad)'}}>{c.early?`${F.name} starts ${plural(c.early,'day')} too early`:`${F.name} waits ${plural(c.wait,'day')}`}</text>
       </g>)})}
 
     {/* Round 2: required new start for each downstream crew */}
@@ -639,7 +687,13 @@ function LobChart({starts,durs,dom,plotK,chk,hover,svgRef,h,dragI,finalLocked,mi
         {hasS&&<circle cx={xs(s)} cy={ys(0)} r="5.5" fill={tc(t.k)} style={{stroke:'var(--panel)'}} strokeWidth="2" pointerEvents="none"/>}
         {hasE&&<circle cx={xs(e)} cy={ys(PJ)} r="5.5" fill={tc(t.k)} style={{stroke:'var(--panel)'}} strokeWidth="2" pointerEvents="none"/>}
         {hasE&&<text className="lob-label halo" x={clamp(xs(e),ML+34,ML+PW-34)} y={ys(PJ)-12} textAnchor="middle" fill={tc(t.k)} pointerEvents="none">{t.name}{label&&focusI===i?` · ${label}`:''}</text>}
-        {hasE&&plotK===6&&<text className="tick halo" x={xs(s)+9} y={ys(0)-9-i*13} fill={tc(t.k)} style={{fill:tc(t.k)}} pointerEvents="none">Day {s}</text>}
+        {hasE&&<g pointerEvents="none">
+          <line x1={xs(e)} y1={ys(PJ)} x2={xs(e)} y2={ys(0)} stroke={tc(t.k)} strokeWidth="1.4" strokeDasharray="4 4" opacity="0.75"/>
+          <line x1={xs(e)} y1={ys(0)} x2={xs(e)} y2={ys(0)+30} stroke={tc(t.k)} strokeWidth="1.4"/>
+          <rect x={xs(e)-27} y={ys(0)+30} width="54" height="18" rx="9" fill={tc(t.k)}/>
+          <text x={xs(e)} y={ys(0)+43} textAnchor="middle" style={{fill:'#fff',fontSize:12,fontWeight:700}}>Day {e}</text>
+        </g>}
+        {hasE&&plotK===6&&i>0&&s!==starts[TRADES[i-1].k]+durs[i-1]&&<text className="tick halo" x={xs(s)+9} y={ys(0)-9} style={{fill:tc(t.k),fontWeight:600}} pointerEvents="none">Start {s}</text>}
         {canDrag&&<g>
           <line x1={xs(s)} y1={ys(0)} x2={xs(e)} y2={ys(PJ)} stroke="transparent" strokeWidth="26" strokeLinecap="round"
                 style={{cursor:dragI===i?'grabbing':'ew-resize'}} onPointerDown={ev=>h.startDrag(i,ev)}/>
@@ -658,6 +712,31 @@ function LobChart({starts,durs,dom,plotK,chk,hover,svgRef,h,dragI,finalLocked,mi
 
 /* ───────── small pieces ───────── */
 function Callout({lvl,children}){return <div className={'callout '+(lvl||'info')} role="status">{children}</div>}
+/* ⓘ tooltip: hover, focus or tap to see exact numbers */
+function Info({children,label,s,name,right}){
+  const [open,setOpen]=useState(false);
+  const note=()=>{if(s&&s.note)s.note('tip',name||label||'info')};
+  return(<span className={'tip'+(open?' open':'')+(right?' tip-r':'')} onMouseEnter={note}>
+    <button type="button" className="tip-btn" aria-label={label||'More info'} aria-expanded={open}
+      onClick={e=>{e.stopPropagation();setOpen(o=>!o);note()}} onBlur={()=>setOpen(false)}>i</button>
+    <span className="tip-box" role="tooltip">{children}</span>
+  </span>);
+}
+/* "Show details": collapsed by default */
+function More({title,children,s,name}){
+  return(<details className="more" onToggle={e=>{if(e.currentTarget.open&&s&&s.note)s.note('details',name||title)}}>
+    <summary>{title}</summary><div className="more-body">{children}</div></details>);
+}
+/* a bar that fills toward a target mark and turns green when it matches */
+function MatchBar({label,cur,target,color,f}){
+  const ok=cur===target,over=cur>target,w=Math.min(target?cur/target:0,1.25)/1.25*100;
+  return(<div className="mbar">
+    <span className="mbar-l">{label}</span>
+    <span className="mbar-track"><i style={{width:w+'%',background:ok?'var(--good)':over?'var(--bad)':color}}/><em/></span>
+    <span className={'mbar-s'+(ok?' good-t':over?' bad-t':'')}>{(f||fmt)(cur)} / {(f||fmt)(target)}{ok?' ✓':''}</span>
+  </div>);
+}
+
 function Stepper({value,onDec,onInc,decOff,incOff,label}){return(
   <div className="stepper">
     <button className="btn-icon" onClick={onDec} disabled={decOff} aria-label={`Remove one ${label}`}>−</button>
@@ -677,7 +756,7 @@ function MiniLob({collide}){return(
       <line x1="60" y1="100" x2="170" y2="20" stroke="var(--pipe)" strokeWidth="3" strokeLinecap="round"/>
       <circle cx="60" cy="100" r="8" fill="none" style={{stroke:'var(--bad)'}} strokeWidth="2.5"/>
     </g>):(<g>
-      <line x1="105" y1="100" x2="205" y2="20" stroke="var(--pipe)" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="95" y1="100" x2="195" y2="20" stroke="var(--pipe)" strokeWidth="3" strokeLinecap="round"/>
     </g>)}
   </svg>)}
 
@@ -685,32 +764,16 @@ function MiniLob({collide}){return(
 /* ───────── Intro ───────── */
 function IntroTab({s}){return(
   <div>
-    <h1>Plan the pipeline. Keep the crews apart.</h1>
-    <p className="lede" style={{marginTop:10}}>
-      Three crews build the same 3 miles one after another. Each crew starts only after the crew before it has finished. Build each crew to its base rate, find how long it needs, schedule them on a Line of Balance chart and watch the job run in 3D. Then improve it in Round 2.
-    </p>
-    <dl className="facts">
-      <dt>Project</dt><dd>College Station Water Pipeline</dd>
-      <dt>Pipe</dt><dd>24" PCCP, 6 to 8 ft deep</dd>
-      <dt>Each crew</dt><dd>3 miles (15,840 ft)</dd>
-      <dt>Order</dt><dd>Excavation, then pipe laying, then backfill</dd>
-    </dl>
-    <h3 style={{marginBottom:10}}>What you will do</h3>
+    <h1>Plan the pipeline.</h1>
+    <p className="lede" style={{marginTop:10}}>Three crews build 3 miles of pipe, one after another: dig, lay the pipe, then fill.</p>
     <ol className="how">
-      <li><span className="n">1</span><div><b>Your crews</b><span className="t">Pick machines to match each crew's base rate, then slide the days until it covers 15,840 ft. That day is its duration.</span></div></li>
-      <li><span className="n">2</span><div><b>Schedule and run</b><span className="t">Plot each crew on the chart. Each one starts after the crew before it finishes. Then press Play.</span></div></li>
-      <li><span className="n">3</span><div><b>Round 2: review, improve, compare</b><span className="t">Find the crew that held you back and move budget to it from another crew, without spending more per day. Round 2 must beat Round 1 on both duration and cost.</span></div></li>
+      <li><span className="n">1</span><div><b>Build your crews</b><span className="t">Add machines until each crew hits its target.</span></div></li>
+      <li><span className="n">2</span><div><b>Schedule and play</b><span className="t">Click the ring to draw each crew on the chart, then watch the job in 3D.</span></div></li>
+      <li><span className="n">3</span><div><b>Improve it</b><span className="t">In Round 2, speed up the slowest crew without spending more.</span></div></li>
     </ol>
-    <h3 style={{marginBottom:8}}>How to read the chart</h3>
-    <div className="reading">
-      <figure><MiniLob/><figcaption>Clear: starts after the crew ahead finishes</figcaption></figure>
-      <figure><MiniLob collide/><figcaption>Conflict: starts too early</figcaption></figure>
+    <div className="reading one">
+      <figure><MiniLob/><figcaption>Each crew starts the day the one before finishes. A steeper line is a faster crew.</figcaption></figure>
     </div>
-    <ul className="rules">
-      <li>A steeper line is a faster crew.</li>
-      <li>End day = start day + duration.</li>
-      <li>A crew can start only after the crew before it has finished.</li>
-    </ul>
     {LOG_URL&&<div style={{marginBottom:12}}>
       <label className="field-label" htmlFor="pid">Player ID</label>
       <input id="pid" className="note" style={{resize:'none'}} value={s.player} onChange={ev=>s.setPlayer(ev.target.value.slice(0,40))} placeholder="Your study ID"/>
@@ -729,7 +792,7 @@ function EquipTab({s}){
   return(
   <div>
     <h2>Your crews</h2>
-    <p className="lede">For each crew, add machines until you hit the base rate, then slide the days until the bar is full.</p>
+    <p className="lede">Match each crew's base rate, then fill the bar.</p>
     <div className="seg" role="group" aria-label="Crews">
       {TRADES.map((x,j)=>{const on=x.k===t.k,u=s.U[j];return(
         <button key={x.k} className={on?'on':''} style={{borderColor:on?tc(x.k):undefined}} onClick={()=>s.setActiveEq(x.k)} aria-pressed={on}>
@@ -737,21 +800,18 @@ function EquipTab({s}){
           <small>{done(x.k)?plural(s.D[j],'day'):meets(s.site,j,s.eq)?'set the days':'match the base rate'}</small>
         </button>)})}
     </div>
-    <div className={'target'+(hit?' hit':'')} style={{borderLeftColor:tc(t.k)}}>
-      <div><span className="muted">Base rate for {t.name.toLowerCase()}</span><b>{fmt(tg.r)} ft/day · {money(tg.c)}/day</b></div>
-      <div className="target-now">
-        <span className={r===tg.r?'good-t':''}>{fmt(r)} ft/day {r===tg.r?'✓':r<tg.r?`(${fmt(tg.r-r)} short)`:`(${fmt(r-tg.r)} over)`}</span>
-        <span className={c===tg.c?'good-t':''}>{money(c)}/day {c===tg.c?'✓':c<tg.c?`(${money(tg.c-c)} under)`:`(${money(c-tg.c)} over)`}</span>
-      </div>
+    <div className={'target2'+(hit?' hit':'')} style={{borderLeftColor:tc(t.k)}}>
+      <div className="target2-head"><b>{hit?'✓ Base rate matched':'Goal: Match the base rate'}</b></div>
+      <MatchBar label="ft/day" cur={r} target={tg.r} color={tc(t.k)}/>
+      <MatchBar label="$/day" cur={c} target={tg.c} color={tc(t.k)} f={money}/>
     </div>
     <EquipCard s={s} t={t}/>
-    {hit?<DurFill s={s} i={i}/>:<Callout>Click + and − until the crew rate and daily cost both match the base rate.</Callout>}
+    {hit&&<DurFill s={s} i={i}/>}
     <div className="btn-row">
       {i>0&&<button className="btn" onClick={()=>s.setActiveEq(TRADES[i-1].k)}>Back</button>}
       {!last&&<button className="btn btn-primary" disabled={!done(t.k)} onClick={()=>s.setActiveEq(next.k)}>Next: {next.name.toLowerCase()}</button>}
       {last&&<button className="btn btn-primary" disabled={!allDone} onClick={()=>s.setTab('lob')}>Continue to schedule</button>}
     </div>
-    {!done(t.k)&&<p className="muted" style={{fontSize:13,marginTop:6}}>Fill the bar and press "Lock in" to continue.</p>}
     {last&&!allDone&&done(t.k)&&<p className="muted" style={{fontSize:13,marginTop:6}}>Lock in {TRADES.filter(x=>!done(x.k)).map(x=>x.name.toLowerCase()).join(' and ')} to continue.</p>}
   </div>)}
 
@@ -762,13 +822,12 @@ function DurFill({s,i}){
   const setG=v=>s.setGuess(t.k,clamp(v,0,130));
   if(s.locked[t.k]&&ok)return(
     <div className="dur-done" style={{borderLeftColor:tc(t.k)}}>
-      <span className="grow"><b style={{color:'var(--good)'}}>✓ {plural(need,'day')}</b> <span className="muted">· {money(need*cost)}</span></span>
+      <span className="grow"><b style={{color:'var(--good)'}}>✓ {plural(need,'day')}</b> <Info s={s} name={'cost-'+t.k} label="Crew cost">{plural(need,'day')} × {money(cost)}/day = {money(need*cost)}</Info></span>
       {s.canRedo(i)&&<button className="btn btn-sm" onClick={()=>s.unlockDur(t.k)}>Redo</button>}
     </div>);
   return(
     <section className="card dur-card" style={{borderTopColor:tc(t.k)}}>
-      <h3 style={{marginBottom:2}}>Fill the bar</h3>
-      <div className="muted" style={{fontSize:13,marginBottom:10}}>Slide until {t.name.toLowerCase()} covers all {fmt(PJ)} ft.</div>
+      <div className="dur-head"><h3>Fill the bar</h3><Info s={s} name={'speed-'+t.k} label="Crew speed" right>Speed: {fmt(r)} ft/day<br/>Goal: {fmt(PJ)} ft</Info></div>
       <div className={'bar'+(ok?' ok':'')}>
         <div className="bar-fill" style={{width:pct+'%',background:over?'var(--bad)':tc(t.k)}}/>
         <div className="bar-text">{ok?'Full':over?'Too far':Math.round(pct)+'%'}</div>
@@ -779,12 +838,21 @@ function DurFill({s,i}){
         <button className="btn-icon" onClick={()=>setG(g+1)} disabled={g>=130} aria-label="One day more">+</button>
       </div>
       <p className="readout">
-        {ok?<><b style={{color:'var(--good)'}}>Full at {plural(need,'day')}</b> · {money(need*cost)}</>
-          :over?<span style={{color:'var(--bad)'}}>{plural(g,'day')} goes past {fmt(PJ)} ft. Slide back.</span>
-          :<>{plural(g,'day')} × {fmt(r)} = <b>{fmt(ft)} ft</b></>}
+        {ok?<><b style={{color:'var(--good)'}}>Full at {plural(need,'day')}</b> <span className="muted">· {fmt(PJ)} ÷ {fmt(r)}</span></>
+          :over?<span style={{color:'var(--bad)'}}>Too far. Slide back.</span>
+          :<b>{plural(g,'day')}</b>}
       </p>
       <div className="btn-row" style={{marginTop:8}}><button className="btn btn-primary" disabled={!ok} onClick={()=>s.lockDur(t.k)}>Lock in {ok?plural(need,'day'):'duration'}</button></div>
     </section>);
+}
+
+/* machine icon, drawn larger for bigger machines: sz 0 = smallest type, 1 = largest */
+function MachineIcon({k,sz}){
+  const sc=0.55+0.45*sz,c=tc(k);
+  const body={exc:<g><rect x="3" y="19" width="18" height="4" rx="2"/><rect x="5" y="12" width="14" height="6" rx="1"/><rect x="6" y="7" width="6" height="5" rx="1"/><path d="M18 13 L25 5 L30 11" fill="none" stroke={c} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round"/><path d="M28 11 h4 l-2 5 h-3 z"/></g>,
+    pipe:<g><rect x="2" y="19" width="16" height="4" rx="2"/><rect x="4" y="12" width="12" height="6" rx="1"/><rect x="4" y="8" width="5" height="4" rx="1"/><path d="M13 12 L29 2" fill="none" stroke={c} strokeWidth="2.2" strokeLinecap="round"/><path d="M29 2 V12" fill="none" stroke={c} strokeWidth="1.2"/><rect x="25" y="12" width="8" height="3" rx="1.5"/></g>,
+    back:<g><rect x="6" y="19" width="18" height="4" rx="2"/><rect x="8" y="12" width="15" height="6" rx="1"/><rect x="15" y="7" width="6" height="5" rx="1"/><path d="M6 15 H3"  stroke={c} strokeWidth="2"/><path d="M1 10 h3 v13 h-4 z"/></g>}[k];
+  return <span className="mico" aria-hidden="true"><svg width={46*sc} height={32*sc} viewBox="0 0 34 24" fill={c}>{body}</svg></span>;
 }
 
 function EquipCard({s,t,readOnly}){
@@ -801,17 +869,13 @@ function EquipCard({s,t,readOnly}){
     </section>);
   return(
     <section className="card" style={{borderTopColor:tc(t.k)}}>
-      <h3>{t.name} <span className="muted" style={{fontWeight:400,fontSize:15}}>· {fmt(PJ)} ft</span></h3>
+      <h3>{t.name}</h3>
       {t.types.map(ty=>{const v=(e&&e[ty.id])||0;return(
         <div className="eq-row" key={ty.id}>
-          <div><div className="eq-name">{ty.n}</div><div className="muted" style={{fontSize:13}}>{ty.r} ft/day · {money(ty.c)}/day</div></div>
-          <Stepper value={v} label={ty.n} decOff={v===0} incOff={n>=MAXU} onDec={()=>s.setCount(t.k,ty.id,-1)} onInc={()=>s.setCount(t.k,ty.id,1)}/>
+          <div className="eq-l"><MachineIcon k={t.k} sz={t.types.length>1?t.types.indexOf(ty)/(t.types.length-1):1}/><div><div className="eq-name">{ty.n}</div><span className="eq-chip">+{ty.r} ft/day · +{money(ty.c)}/day</span></div></div>
+          <Stepper value={v} label={ty.n} decOff={v===0} incOff={n>=MAXU||(s.round===2&&s.r1&&dailyOf(s.eq)+ty.c>s.r1.daily)} onDec={()=>s.setCount(t.k,ty.id,-1)} onInc={()=>s.setCount(t.k,ty.id,1)}/>
         </div>)})}
-      <dl className="sum">
-        <div><dt>Crew rate</dt><dd>{fmt(r)} ft/day</dd></div>
-        <div><dt>Daily cost</dt><dd>{money(c)}</dd></div>
-        <div><dt>Machines</dt><dd>{n} of {MAXU}</dd></div>
-      </dl>
+      {s.round===2&&s.r1&&(()=>{const j=TRADES.indexOf(t),d1=s.r1.D[j],d2=n?Core.dur(t,e):null;return <div className="crew-line">{fmt(r)} ft/day · {d2==null?'needs a machine':<>{plural(d2,'day')} <span className={d2<d1?'good-t':d2>d1?'bad-t':'muted'}>(Round 1: {d1})</span></>}</div>})()}
     </section>)}
 
 function EquipR2({s}){
@@ -831,39 +895,15 @@ function EquipR2({s}){
   return(
   <div>
     <h2>Reallocate the budget</h2>
-    <p className="lede">Free up money on <b style={{color:tc(dt.k)}}>{dt.name}</b>, then spend it on <b style={{color:tc(bt.k)}}>{bt.name}</b>. Fill the bar for each crew you change. {TRADES[lockedI[0]].name} stays as it was.</p>
-
+    <p className="lede">Take machines from <b style={{color:tc(dt.k)}}>{dt.name}</b>, then add them to <b style={{color:tc(bt.k)}}>{bt.name}</b>. You can't spend more per day than in Round 1.</p>
     <section className="card meter-card">
-      <div className="meter-head"><b>Daily budget</b><span className={over?'bad-t':''}>{money(used)} of {money(cap)}</span></div>
-      <div className={'meter'+(over?' over':'')}><i style={{width:Math.min(used/cap,1)*100+'%'}}/></div>
-      <div className="meter-grid">
-        <div><span className="muted">Freed from {dt.name.toLowerCase()}</span><b>{money(Math.max(freed,0))}</b></div>
-        <div><span className="muted">Spent on {bt.name.toLowerCase()}</span><b>{money(Math.max(spent,0))}</b></div>
-        <div><span className="muted">{over?'Over budget':'Left'}</span><b className={over?'bad-t':''}>{money(Math.abs(cap-used))}</b></div>
-      </div>
+      <div className="meter-head"><b>Daily budget</b><span className="muted">{money(used)} of {money(cap)} · {money(Math.max(cap-used,0))} left</span></div>
+      <div className="meter"><i style={{width:Math.min(used/cap,1)*100+'%'}}/></div>
     </section>
-
-    <div className="step-h"><span className="n">a</span>Free up budget: downsize {dt.name.toLowerCase()}</div>
-    <div onClickCapture={()=>s.setActiveEq(dt.k)}><EquipCard s={s} t={dt}/>{(s.R[di]!==r1.R[di]||!s.locked[dt.k])&&<DurFill s={s} i={di}/>}</div>
+    <div className="step-h"><span className="n">a</span>Free up budget: take from {dt.name.toLowerCase()}</div>
+    <div onClickCapture={()=>s.setActiveEq(dt.k)}><EquipCard s={s} t={dt}/></div>
     <div className="step-h"><span className="n">b</span>Spend it: speed up {bt.name.toLowerCase()}</div>
-    <div onClickCapture={()=>s.setActiveEq(bt.k)}><EquipCard s={s} t={bt}/>{(s.R[bi]!==r1.R[bi]||!s.locked[bt.k])&&<DurFill s={s} i={bi}/>}</div>
-
-    <section className="block">
-      <h3>Days gained and lost</h3>
-      <table className="stable ledger">
-        <thead><tr><th>Crew</th><th>Rate (ft/day)</th><th>Days</th><th>Change</th></tr></thead>
-        <tbody>
-          {[di,bi].map(i=>{const t=TRADES[i],k=known(i),dlt=k?D2[i]-r1.D[i]:0;return(
-            <tr key={t.k}><td><span className="sw" style={{background:tc(t.k),display:'inline-block',marginRight:8}}/>{t.name}</td>
-              <td>{fmt(r1.R[i])} → {fmt(s.R[i])}</td><td>{r1.D[i]} → {k?D2[i]:'?'}</td>
-              <td className={dlt>0?'bad-t':dlt<0?'good-t':''}>{k?sign(dlt)+' d':'fill the bar'}</td></tr>)})}
-          <tr className="proj"><td>Net change</td><td></td><td></td><td className={net>0?'bad-t':net<0?'good-t':''}>{ok?sign(net)+' d':'–'}</td></tr>
-        </tbody>
-      </table>
-      <p className="muted" style={{fontSize:13,margin:'6px 0 0'}}>You will see the impact on the schedule, and move the crews after the change, on the Schedule step.</p>
-    </section>
-
-
+    <div onClickCapture={()=>s.setActiveEq(bt.k)}><EquipCard s={s} t={bt}/></div>
     <Gate s={s}/>
     <div className="btn-row">
       <button className="btn" onClick={s.resetFleet}>Undo changes</button>
@@ -889,11 +929,15 @@ function Gate({s}){
     {ok:tOk,short:known?`Shorter · ${T2} d`:'Shorter',l:'Shorter than Round 1',why:!known?'Shown once the bars are locked':tOk?`${r1.project} → ${T2} days (${r1.project-T2} d shorter)`:`${r1.project} → ${T2} days. ${bt.name} must gain more days than ${dt.name.toLowerCase()} loses.`},
     {ok:cOk,short:known?`Cheaper · ${money(C2)}`:'Cheaper',l:'Cheaper than Round 1',why:!known?'Shown once the bars are locked':cOk?`${money(r1.direct)} → ${money(C2)}`:`${money(r1.direct)} → ${money(C2)}. Use machines with a lower cost per foot.`}];
   const pass=items.every(x=>x.ok);
+  const Row=({lbl,a,b,ok,f})=>(<div className={'out-row '+(b==null?'':ok?'ok':'no')}>
+    <span className="out-l">{lbl}</span><span className="out-v">{f(a)} → <b>{b==null?'?':f(b)}</b></span>
+    <span className="out-s">{b==null?'':ok?'✓ better':'✗ not yet'}</span></div>);
   return(<section className="gate">
-    <div className="gate-head"><h3>Round 2 checks</h3><span className={pass?'good-t':'muted'}>{items.filter(x=>x.ok).length} of 5</span></div>
-    <div className="pills">{items.map((x,i)=><span key={i} className={'pill '+(x.ok?'ok':'no')} title={`${x.l}. ${x.why}`}>{x.ok?'✓':'✗'} {x.short}</span>)}</div>
-    {!pass&&<p className="gate-note muted">Rosa explains what's missing in the corner of the site view.</p>}
-    {pass&&<p className="gate-note good-t">All set. Best possible on this site: {plural(opt.bestT,'day')} and {money(opt.bestC)}.</p>}
+    <div className="gate-head"><h3>Beat Round 1</h3></div>
+    {!s.fleetOk&&<p className="gate-note bad-t">Every crew needs at least one machine.</p>}
+    <Row lbl="Days" a={r1.project} b={known?T2:null} ok={tOk} f={v=>plural(v,'day')}/>
+    <Row lbl="Cost" a={r1.direct} b={known?C2:null} ok={cOk} f={money}/>
+    {pass&&<p className="gate-note good-t">Both better. Best possible on this site: {plural(opt.bestT,'day')} and {money(opt.bestC)}.</p>}
     {!pass&&changed.length>0&&hint===0&&<button className="btn btn-sm" onClick={()=>s.useHint(1)}>Show a hint</button>}
     {!pass&&hint>=1&&<div className="hint">
       <b>Cost per foot</b> (daily cost ÷ ft per day): lower is cheaper for the same 15,840 ft.
@@ -907,7 +951,8 @@ function Gate({s}){
 /* ───────── 3 LOB ───────── */
 function conflictLine(pi,c){
   const P=TRADES[pi],F=TRADES[pi+1];
-  return `${F.name} starts at day ${c.sF}, but ${P.name.toLowerCase()} finishes at day ${c.eP}. Move ${F.name.toLowerCase()} to day ${c.eP} or later.`;
+  return c.early?`${F.name} starts at day ${c.sF}, before ${P.name.toLowerCase()} finishes at day ${c.eP}. Move it to day ${c.eP}.`
+                :`${F.name} starts at day ${c.sF}, ${plural(c.wait,'day')} after ${P.name.toLowerCase()} finishes. Move it to day ${c.eP}.`;
 }
 
 
@@ -924,25 +969,16 @@ function ScheduleTab({s}){
   <div className="sched">
     <h2>{title}</h2>
     <p className="lede" style={{marginBottom:8}}>
-      {plotting?(isStart?<>Click the chart at the day <b style={{color:tc(tt.k)}}>{tt.name}</b> starts.{ti>0?` It can start only after ${TRADES[ti-1].name.toLowerCase()} has finished.`:''}</>
-                        :<>Snap the <b style={{color:tc(tt.k)}}>{tt.name}</b> end in the pop-up, or click the 3 mi row yourself.</>)
+      {plotting?<>Click the ring to draw <b style={{color:tc(tt.k)}}>{tt.name}</b>. It starts on day {starts[tt.k]} and finishes {plural(D[ti],'day')} later.</>
         :(r2&&s.revise.length)?<>{bt.name} now finishes at day {starts[bt.k]+D[s.bIdx]}. Move each crew after it so it starts when the crew ahead finishes.</>
         :!clear?'Drag a line sideways to change when that crew starts.'
         :done?`Round ${s.round} is complete. Drag a line to try a different schedule.`
         :playing?'The cursor on the chart follows the 3D site.'
-        :'Every crew starts after the one ahead has finished. Press Play to run it.'}
+        :'Every crew starts the day the one ahead finishes. Press Play to run it.'}
     </p>
     <div className="lob-wrap">
       <div className="lob-inner">
         <LobChart starts={starts} durs={D} dom={s.DOM} plotK={plotK} chk={chk} hover={s.hover} svgRef={s.svgRef} h={s.h} dragI={s.dragI} finalLocked={playing} cursor={ready&&(started||playing)?simDay:null} ghost={s.round===2?{starts:s.r1.starts,durs:s.r1.D}:null} revise={s.revise.slice(0,1)}/>
-        {pend&&<div className="snap" role="dialog" aria-label={`${tt.name} end point`} style={{left:pl+'%',top:pt+'%',borderTopColor:tc(tt.k)}}>
-          <div><b style={{color:tc(tt.k)}}>{tt.name}</b> starts at day {S0}</div>
-          <div className="snap-math">End = {S0} + {D[ti]} = <b>day {E0}</b>{ti<2?<><br/>{TRADES[ti+1].name} can start at day {E0} or later.</>:null}</div>
-          <div className="snap-btns">
-            <button className="btn btn-primary btn-sm" onClick={s.snapEnd}>Snap end to day {E0}</button>
-            <button className="btn btn-sm" onClick={s.undoStart}>Change start</button>
-          </div>
-        </div>}
       </div>
     </div>
 
@@ -951,7 +987,6 @@ function ScheduleTab({s}){
       <p className="muted" style={{fontSize:13,margin:'-4px 0 10px'}}>{moved.length?`Start dates moved: ${moved.map(t=>`${t.name} ${s.r1.starts[t.k]} → ${starts[t.k]}`).join(', ')}.`:'Start dates are the same as Round 1.'}</p>)})()}
     {plotting&&s.msg&&<Callout lvl={s.msg.lvl}>{s.msg.text}</Callout>}
     {!plotting&&r2&&s.revise.length>0&&<div className="revise">
-      <b>Revise start dates in order, from upstream to downstream</b>
       {s.revise.slice(0,1).map(r=>{const t=TRADES[r.i],p=TRADES[r.i-1],late=r.cur<r.target;return(
         <div className="rev-row" key={t.k} style={{borderLeftColor:tc(t.k)}}>
           <div className="grow">
@@ -961,7 +996,7 @@ function ScheduleTab({s}){
           <span className="drag-tip" style={{color:tc(t.k)}}>Drag to day {r.target}</span>
         </div>)})}
       {s.revise.length>1&&<div className="muted" style={{fontSize:13}}>Next: {s.revise.slice(1).map(r=>TRADES[r.i].name.toLowerCase()).join(', ')}, once this one is fixed.</div>}
-      <div className="muted" style={{fontSize:13}}>Drag the line sideways on the chart. The dashed line and ring mark where it should start.</div>
+      <div className="muted" style={{fontSize:13}}>Drag the line sideways to the ring on the chart.</div>
     </div>}
     {!plotting&&!r2&&!clear&&<Callout lvl="bad">
       <b>{plural(chk.pairs.filter(p=>p.conflict).length,'conflict')} on the chart.</b>
@@ -985,7 +1020,11 @@ function SchedTable({s,started}){
   const {plotK,starts,D,R,eq,simDay}=s;
   const all=plotK===6,first=all?Math.min(...TRADES.map(t=>starts[t.k])):null,last=all?Math.max(...TRADES.map((t,i)=>starts[t.k]+D[i])):null;
   return(<section className="block">
-    <h3>Schedule</h3>
+    <div className="sum-line"><b>Project: {all?plural(last-first,'day'):'not plotted yet'}</b>
+      <span className="dots">{TRADES.map((t,i)=>{const hasE=plotK>i*2+1,c=started?crewAt(i,starts,D,simDay):null;
+        const st=started?c.st:hasE?'done':plotK>i*2?'half':'wait';
+        return <span key={t.k} className={'dot d-'+st} title={t.name} style={{'--tc':tc(t.k)}}>{t.name}</span>})}</span></div>
+    <More title="Show schedule details" s={s} name="schedule-table">
     <table className="stable">
       <thead><tr><th>Crew</th><th>Rate</th><th>Dur</th><th>$/d</th><th>Start</th><th>End</th></tr></thead>
       <tbody>
@@ -1007,6 +1046,7 @@ function SchedTable({s,started}){
         <tr className="proj"><td>Project</td><td></td><td>{all?(last-first)+'d':'–'}</td><td></td><td>{all?first:'–'}</td><td>{all?last:'–'}</td></tr>
       </tbody>
     </table>
+    </More>
   </section>)}
 
 function Budget({s}){
@@ -1014,16 +1054,18 @@ function Budget({s}){
   const parts=TRADES.map((t,i)=>{const c=Core.cost(t,eq[t.k]);return {t,d:D[i],c,v:D[i]*c}});
   const total=parts.reduce((a,p)=>a+p.v,0);
   return(<section className="block">
-    <h3>Budget</h3>
+    <div className="sum-line"><b>Budget: {money(total)}</b></div>
     <div className="budget" role="img" aria-label={`Total ${money(total)}`}>
       {parts.map(p=><div key={p.t.k} className="budget-seg" style={{width:(p.v/total*100)+'%',background:tc(p.t.k)}} title={`${p.t.name}: ${money(p.v)}`}>
         {p.v/total>0.14&&<span>{Math.round(p.v/total*100)}%</span>}
       </div>)}
     </div>
+    <More title="Show budget breakdown" s={s} name="budget">
     <ul className="budget-list">
       {parts.map(p=><li key={p.t.k}><span className="sw" style={{background:tc(p.t.k)}}/><span className="grow">{p.t.name} <span className="muted">({p.d}d × {money(p.c)})</span></span><b>{money(p.v)}</b></li>)}
       <li className="budget-total"><span className="grow">Total</span><b>{money(total)}</b></li>
     </ul>
+    </More>
   </section>)}
 
 /* ───────── Review (between rounds) ───────── */
@@ -1111,7 +1153,7 @@ function DurCompare({a,b,bLive}){
         <div className="durc-track">
           {ticks.map(d=><i key={d} className="durc-grid" style={{left:pct(d)}}/>)}
           {TRADES.map((t,i)=><span key={t.k} className="durc-seg" title={`${t.name}: day ${r.starts[t.k]} to day ${r.ends[i]}`}
-            style={{left:pct(r.starts[t.k]),width:pct(r.D[i]),background:tc(t.k)}}/>)}
+            style={{left:pct(r.starts[t.k]),width:pct(r.D[i]),background:tc(t.k)}}>{r.D[i]/dom>=0.06?r.D[i]+' d':''}</span>)}
           <b className="durc-end" style={{left:pct(r.last)}}>{r.project} d{l==='Round 2'&&bLive?' (now)':''}</b>
         </div>
       </div>))}
@@ -1153,10 +1195,23 @@ function CompareTab({s}){
         <div className="sc-rows">
           <div><span className="muted">Duration</span> {plural(a.project,'day')} → <b>{plural(b.project,'day')}</b> <span className="muted">· best possible {s.opt.bestT}</span></div>
           <div><span className="muted">Cost</span> {money(a.direct)} → <b>{money(b.direct)}</b> <span className="muted">· best possible {money(s.opt.bestC)}</span></div>
-          <div className="muted" style={{fontSize:12.5}}>{s.siteName} · 50 points for closing the gap to the best duration, 50 for the best cost.</div>
+          <div className="muted" style={{fontSize:12.5}}>How the score works <Info s={s} name="score">50 points for closing the gap to the best possible duration, 50 for the best possible cost on {s.siteName}.</Info></div>
         </div>
       </section>)})()}
     <DurCompare a={a} b={b}/>
+    <section className="block">
+      <h3>Reflection</h3>
+      <label className="field-label" htmlFor="plus">Plus: what worked in Round 2?</label>
+      <textarea id="plus" className="note" rows="2" value={s.refl.plus} onChange={ev=>s.setRefl({...s.refl,plus:ev.target.value})}/>
+      <label className="field-label" htmlFor="delta">Delta: what would you change next time?</label>
+      <textarea id="delta" className="note" rows="2" value={s.refl.delta} onChange={ev=>s.setRefl({...s.refl,delta:ev.target.value})}/>
+      {(()=>{const st=s.logStat.cmp,ready=s.refl.plus.trim()&&s.refl.delta.trim(),sent=st&&st!=='sending'&&!s.cmpDirty;return(
+        <div className="btn-row" style={{alignItems:'center'}}>
+          <button className="btn btn-primary" disabled={!ready||st==='sending'||sent} onClick={s.submitReflection}>{st&&st!=='sending'&&s.cmpDirty?'Submit update':'Submit reflection'}</button>
+          <span className="muted" style={{fontSize:13}}>{!ready?'Write a plus and a delta to submit.':st==='sending'?'Saving…':st==='sent'?'✓ Saved':st==='queued'?'Saved on this device; will retry':st==='off'?'Recorded (not connected to a sheet)':''}</span>
+        </div>)})()}
+    </section>
+    <More title="See detailed results" s={s} name="compare-details">
     <div className="kpis">
       {kpis.map(k=><div className="kpi" key={k.l}>
         <div className="kpi-l">{k.l}</div>
@@ -1220,18 +1275,7 @@ function CompareTab({s}){
       </table>
     </section>
 
-    <section className="block">
-      <h3>Reflection</h3>
-      <label className="field-label" htmlFor="plus">Plus: what worked in Round 2?</label>
-      <textarea id="plus" className="note" rows="2" value={s.refl.plus} onChange={ev=>s.setRefl({...s.refl,plus:ev.target.value})}/>
-      <label className="field-label" htmlFor="delta">Delta: what would you change next time?</label>
-      <textarea id="delta" className="note" rows="2" value={s.refl.delta} onChange={ev=>s.setRefl({...s.refl,delta:ev.target.value})}/>
-      {(()=>{const st=s.logStat.cmp,ready=s.refl.plus.trim()&&s.refl.delta.trim(),sent=st&&st!=='sending'&&!s.cmpDirty;return(
-        <div className="btn-row" style={{alignItems:'center'}}>
-          <button className="btn btn-primary" disabled={!ready||st==='sending'||sent} onClick={s.submitReflection}>{st&&st!=='sending'&&s.cmpDirty?'Submit update':'Submit reflection'}</button>
-          <span className="muted" style={{fontSize:13}}>{!ready?'Write a plus and a delta to submit.':st==='sending'?'Saving…':st==='sent'?'✓ Saved':st==='queued'?'Saved on this device; will retry':st==='off'?'Recorded (not connected to a sheet)':''}</span>
-        </div>)})()}
-    </section>
+    </More>
   </div>)}
 
 /* ───────── 3D site simulation ───────── */
@@ -1429,13 +1473,12 @@ function SimHud({s}){
   const total=TRADES.reduce((a,tr,i)=>a+D[i]*Core.cost(tr,eq[tr.k]),0);
   return(<>
     <div className="hud hud-tl">
-      <div className="hud-day"><b>Day {Math.floor(t+1e-9)}</b><span>of {endDay}</span></div>
-      <div className="hud-cost"><b>{money(spent)}</b> <span>of {money(total)}</span></div>
+      <div className="hud-day"><b>Day {Math.floor(t+1e-9)}</b><span>of {endDay}</span><Info s={s} name="hud-cost" label="Cost so far" right>Cost so far: {money(spent)} of {money(total)}</Info></div>
       <ul className="hud-crews">
         {C.map((c,i)=>{const tr=TRADES[i];return(
           <li key={tr.k} className={'c-'+c.st}>
             <span className="nm" style={{color:tc(tr.k)}}>{tr.name}</span>
-            <span className="val">{c.st==='wait'?`day ${c.s}`:c.st==='done'?'Done':Math.round(c.ft/PJ*100)+'%'}</span>
+            <span className="val">{c.st==='done'?'✓':''}</span>
             <span className="mini"><i style={{width:(c.ft/PJ*100)+'%',background:tc(tr.k)}}/></span>
           </li>)})}
       </ul>
@@ -1536,7 +1579,7 @@ function npcLine(x){
   const {tab,round,site,eq,activeEq,g,D,R,U,locked,plotK,starts,chk,ready,simDay,endDay,playing,r1,rev,opt,revise,overCap,changedR2,projT,projC,gatePass,doneR,cmpScore}=x;
   const nm=i=>TRADES[i].name,lc=i=>TRADES[i].name.toLowerCase();
   const say=(text,mood)=>({text,mood});
-  if(tab==='intro')return say(`Welcome to ${SITES[site].name}. I'm Rosa, your superintendent. Three crews, 3 miles each, one after another. Each crew starts only when the one ahead has finished. Let's get going.`);
+  if(tab==='intro')return say(`Welcome to ${SITES[site].name}. I'm Rosa, your superintendent. Enter your ID and let's build some crews.`);
   if(tab==='r1view')return say(`This is Round 1, kept for reference. Use the switch above to go back to Round 2.`);
   if(tab==='equip'&&round===1){
     const i=TRADES.findIndex(t=>t.k===activeEq),k=activeEq,need=D[i],gi=g[k];
@@ -1571,11 +1614,11 @@ function npcLine(x){
   if(tab==='lob'){
     if(plotK<6){
       const i=Math.floor(plotK/2);
-      if(plotK%2===0)return i===0?say(`Click the day excavation starts. Day 0 is fine.`):say(`Now ${lc(i)}. It can't start until ${lc(i-1)} finishes at day ${starts[TRADES[i-1].k]+D[i-1]}. Click the start.`);
-      return say(`${nm(i)} needs ${D[i]} days. Start plus duration: snap the end.`);
+      const s0=starts[TRADES[i].k];
+      return say(i===0?`Excavation starts on day 0. Click the ring where it finishes.`:`${nm(i)} starts the day ${lc(i-1)} finishes. Click the ring to draw it.`);
     }
     if(round===2&&revise.length){const r=revise[0];return say(`${nm(r.i)} has to start the moment ${lc(r.i-1)} finishes. Drag it to day ${r.target}.`,'alert');}
-    if(chk&&!chk.clear){const pi=chk.pairs.findIndex(p=>p.conflict),c=chk.pairs[pi];return say(`${nm(pi+1)} starts before ${lc(pi)} finishes. Drag it to day ${c.eP} or later.`,'alert');}
+    if(chk&&!chk.clear){const pi=chk.pairs.findIndex(p=>p.conflict),c=chk.pairs[pi];return say(c.early?`${nm(pi+1)} starts before ${lc(pi)} finishes. Drag it to day ${c.eP}.`:`${nm(pi+1)} is waiting ${plural(c.wait,'day')}. Drag it to day ${c.eP}, the day ${lc(pi)} finishes.`,'alert');}
     if(ready&&simDay>=endDay&&endDay>0)return round===1?say(`Round 1 done: ${Math.max(...TRADES.map((t,i)=>starts[t.k]+D[i]))} days. I think we can do better. Start Round 2.`,'good')
       :say(`Round 2 done: ${projT} days against ${r1.project}. Let's compare.`,'good');
     if(playing)return say(`Crews are rolling. Watch the cursor on the chart follow the site.`);
@@ -1588,7 +1631,8 @@ function npcLine(x){
 
 /* ───────── Data logging to Google Sheets ─────────
    Paste the Apps Script web app URL below, or add ?log=<url> to the game link. Empty = logging off. */
-const LOG_URL_DEFAULT='https://script.google.com/macros/s/AKfycbw_5OVZimNvjX2WI_k7EGGdaCDh-JpOunsIJrkuFzTbnoldIa9VcxL4XjbLEPXB5sIc/exec';const LOG_URL=(()=>{try{const q=new URLSearchParams(location.search).get('log');if(q)return q}catch(e){}return LOG_URL_DEFAULT})();
+const LOG_URL_DEFAULT='https://script.google.com/macros/s/AKfycbw_5OVZimNvjX2WI_k7EGGdaCDh-JpOunsIJrkuFzTbnoldIa9VcxL4XjbLEPXB5sIc/exec';
+const LOG_URL=(()=>{try{const q=new URLSearchParams(location.search).get('log');if(q)return q}catch(e){}return LOG_URL_DEFAULT})();
 const SESSION_ID=(()=>{try{return crypto.randomUUID()}catch(e){return 'S'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}})();
 const r2d=(v,n)=>Math.round(v*Math.pow(10,n||2))/Math.pow(10,n||2);
 const pct=(a,b)=>a?r2d((b-a)/a*100,1):0;                         // change from a to b, %
@@ -1677,8 +1721,8 @@ function App(){
   const [activeEq,setActiveEq]=useState('exc');
   const [g,setG]=useState({exc:0,pipe:0,back:0});
   const [locked,setLocked]=useState({exc:false,pipe:false,back:false});
-  const [starts,setStarts]=useState({exc:null,pipe:null,back:null});
-  const [plotK,setPlotK]=useState(0);
+  const [starts,setStarts]=useState({exc:0,pipe:null,back:null});
+  const [plotK,setPlotK]=useState(1);
   const [msg,setMsg]=useState(null);
   const [misses,setMisses]=useState(0);
   const [hover,setHover]=useState(null);
@@ -1695,6 +1739,8 @@ function App(){
   const [refl,setRefl]=useState({plus:'',delta:''});
   const [player,setPlayer]=useState('');
   const [logStat,setLogStat]=useState({1:null,2:null,cmp:null});
+  const uiUse=useRef({tips:new Set(),details:new Set()});
+  function note(kind,name){const u=uiUse.current;(kind==='tip'?u.tips:u.details).add(String(name))}
   const attempts=useRef({1:0,2:0,cmp:0}),missTotal=useRef(0),roundT0=useRef(null),cmpSentSig=useRef('');
   const [doneR,setDoneR]=useState({1:false,2:false});
   const [cmpR,setCmpR]=useState(2);
@@ -1731,6 +1777,8 @@ function App(){
     const st=roundStats(eq,starts);attempts.current[n]++;
     const fields=roundFields({st,round:n,site,player,attempt:attempts.current[n],misses:missTotal.current,
       secs:roundT0.current?Math.round((Date.now()-roundT0.current)/1000):'',rev,r1});
+    fields['Tooltips opened']=[...uiUse.current.tips].join(', ');fields['Details opened']=[...uiUse.current.details].join(', ');
+    uiUse.current={tips:new Set(),details:new Set()};
     setLogStat(x=>({...x,[n]:'sending'}));
     const png=await svgToPng(lobSvgString(st,`${player||'Player'} · ${SITES[site].name} · Round ${n} · ${st.project} days`));
     const res=await sendLog({type:'round',sheet:'Rounds',fields,lobPng:png,chartName:`${player||SESSION_ID}_${SITES[site].name}_R${n}_a${attempts.current[n]}.png`});
@@ -1742,6 +1790,7 @@ function App(){
     attempts.current.cmp++;
     setLogStat(x=>({...x,cmp:'sending'}));
     const fields=compareFields({a:r1,b,site,player,refl,score:sc,attempt:attempts.current.cmp});
+    fields['Details opened']=[...uiUse.current.details].join(', ');fields['Tooltips opened']=[...uiUse.current.tips].join(', ');
     const res=LOG_URL?await sendLog({type:'compare',sheet:'Comparison',fields}):'off';
     cmpSentSig.current=refl.plus+'|'+refl.delta;
     setLogStat(x=>({...x,cmp:res}));
@@ -1782,11 +1831,12 @@ function App(){
   }
   function resetFleet(){if(!r1)return;setEq(JSON.parse(JSON.stringify(r1.eq)));keepR1(r1)}
   function resetPlot(){
-    if(round===2&&r1){setStarts({...r1.starts});setPlotK(6);setMsg(null);setMisses(0);setHover(null);setPlaying(false);return}setStarts({exc:null,pipe:null,back:null});setPlotK(0);setMsg(null);setMisses(0);setHover(null);setPlaying(false)}
+    if(round===2&&r1){setStarts({...r1.starts});setPlotK(6);setMsg(null);setMisses(0);setHover(null);setPlaying(false);return}setStarts({exc:0,pipe:null,back:null});setPlotK(1);setMsg(null);setMisses(0);setHover(null);setPlaying(false)}
   function setCount(k,id,d){
     setEq(e=>{const cur=(e[k][id]||0)+d;return {...e,[k]:{...e[k],[id]:Math.max(0,cur)}}});
-    setG(x=>({...x,[k]:0}));setLocked(x=>({...x,[k]:false}));resetPlot();
+    if(round!==2){setG(x=>({...x,[k]:0}));setLocked(x=>({...x,[k]:false}))}resetPlot();
   }
+  useEffect(()=>{if(round!==2)return;const gg={},ll={};TRADES.forEach((t,i)=>{gg[t.k]=D[i];ll[t.k]=true});setG(gg);setLocked(ll)},[round,JSON.stringify(eq)]);
   function setGuess(k,v){setG(x=>({...x,[k]:v}))}
   function lockDur(k){setLocked(x=>({...x,[k]:true}))}
   function unlockDur(k){setLocked(x=>({...x,[k]:false}));setG(x=>({...x,[k]:0}));resetPlot()}
@@ -1805,20 +1855,22 @@ function App(){
     const v=viewPt(ev),ti=Math.floor(plotK/2),t=TRADES[ti],isStart=plotK%2===0;
     if(v.x<ML-6||v.x>ML+PW+6)return;
     const d=Math.round(dayAt(v.x)),row=ys(isStart?0:PJ);
-    if(!isStart&&Math.abs(v.y-row)>28){miss(`End points sit on the 3 mi row. Click the highlighted row.`,'warn');return}
+    if(!isStart&&Math.abs(v.y-row)>28){miss(`Click the ring on the 3 mi row.`,'warn');return}
     if(isStart){
       if(d<0||d>DOM-D[ti]){miss(`Start ${t.name.toLowerCase()} between day 0 and day ${DOM-D[ti]}.`,'warn');return}
-      if(ti>0){const p=TRADES[ti-1],eP=starts[p.k]+D[ti-1];if(d<eP){miss(`${t.name} can start only after ${p.name.toLowerCase()} has finished, at day ${eP} or later.`,'warn');return}}
+      if(ti>0){const p=TRADES[ti-1],eP=starts[p.k]+D[ti-1];
+        if(Math.abs(d-eP)>2){miss(`${t.name} starts the same day ${p.name.toLowerCase()} finishes: day ${eP}. Click on the dashed line.`,'warn');return}
+        setStarts(x=>({...x,[t.k]:eP}));accept(plotK+1);return;}
       setStarts(x=>({...x,[t.k]:d}));
       accept(plotK+1,`${t.name} starts at day ${d}.`);
     }else{
       const want=starts[t.k]+D[ti],diff=d-want;
-      if(diff===0)accept(plotK+1,plotK===5?'All lines plotted.':`${t.name}: ${span(starts[t.k],D[ti])}.`);
-      else if(Math.abs(diff)<=3)miss(`Close, but ${plural(Math.abs(diff),'day')} ${diff<0?'early':'late'}. End = ${starts[t.k]} + ${D[ti]}.`,'warn');
-      else miss(`Day ${d} is ${plural(Math.abs(diff),'day')} off. End = ${starts[t.k]} + ${D[ti]}.`);
+      if(Math.abs(diff)<=4)finishCrew(ti);
+      else miss(`Click the ring at day ${want}.`,'warn');
     }
   }
-  function snapEnd(){if(plotK<6&&plotK%2===1)accept(plotK+1)}
+  function finishCrew(ti){const nx=TRADES[ti+1];if(nx)setStarts(x=>({...x,[nx.k]:starts[TRADES[ti].k]+D[ti]}));accept(ti<2?plotK+2:6)}
+  function snapEnd(){if(plotK<6&&plotK%2===1)finishCrew(Math.floor(plotK/2))}
   function undoStart(){if(plotK%2!==1)return;const k=TRADES[Math.floor(plotK/2)].k;setStarts(x=>({...x,[k]:null}));setPlotK(plotK-1);setMsg(null);setMisses(0)}
   function startDrag(i,ev){
     ev.stopPropagation();
@@ -1831,7 +1883,8 @@ function App(){
       const v=viewPt(ev);
       if(dragI){
         const i=dragI.i,k=TRADES[i].k,lo=i>0?starts[TRADES[i-1].k]+D[i-1]:0;
-        const sNew=Math.max(lo,clamp(Math.round(dayAt(v.x)-dragI.off),0,DOM-D[i]));
+        let sNew=Math.max(lo,clamp(Math.round(dayAt(v.x)-dragI.off),0,DOM-D[i]));
+        if(i>0&&Math.abs(sNew-lo)<=2)sNew=lo;
         if(sNew!==starts[k])setStarts(x=>({...x,[k]:sNew}));
       }else if(plotK<6){
         const d=Math.round(dayAt(v.x));setHover(d>=0&&d<=DOM?d:null);
@@ -1861,7 +1914,7 @@ function App(){
     }
   }else view={mode:'static',cam:'overview',crews:TRADES.map(()=>({ft:0,vis:false,anim:false,tag:''}))};
 
-  const state={player,setPlayer,logStat,submitReflection,cmpDirty:cmpSentSig.current!==refl.plus+'|'+refl.delta,
+  const state={note,player,setPlayer,logStat,submitReflection,cmpDirty:cmpSentSig.current!==refl.plus+'|'+refl.delta,
     site,siteName:SITES[site].name,opt,projT,projC,gatePass,useHint,tab,setTab,eq,activeEq,setActiveEq,setCount,g,setGuess,locked,lockDur,unlockDur,R,U,D,fleetOk,DOM,
     starts,plotK,msg,misses,chk,snapEnd,undoStart,resetPlot,hover,svgRef,h,dragI:dragI?dragI.i:null,
     simDay,endDay,playing,speed,setSpeed,cam,setCam,togglePlay,restart,scrub,seek,
@@ -1869,7 +1922,7 @@ function App(){
     round,r1,rev,pickBottleneck,pickDonor,overCap,setNote,startRound2,resetFleet,changedR2,prevRef,refl,setRefl,cmpRef};
   const npc=npcLine({tab,round,site,eq,activeEq,g,D,R,U,locked,plotK,starts,chk,ready,simDay,endDay,playing,r1,rev,opt,revise,overCap,changedR2,projT,projC,gatePass,doneR,
     cmpScore:tab==='cmp'&&r1&&opt?score(r1,roundStats(eq,starts).project,roundStats(eq,starts).direct,opt):null});
-  const simState={...state,eq:ctx.eq,starts:ctx.starts,D:ctx.D,cmpR:tab==='cmp'?cmpR:null,setCmpR};
+  const simState={...state,note,eq:ctx.eq,starts:ctx.starts,D:ctx.D,cmpR:tab==='cmp'?cmpR:null,setCmpR};
 
   const tabs=round===1?[
     {id:'intro',label:'Intro',n:'i',ok:true,done:false},
@@ -1922,7 +1975,7 @@ function App(){
     </div>
     <div className="right">
       <Sim3D eq={ctx.eq} view={view} dayRef={simRef}>{((tab==='lob'&&ready)||tab==='cmp'||((tab==='review'||tab==='r1view')&&r1))&&<SimHud s={simState}/>}<Npc line={npc}/></Sim3D>
-      {tab==='lob'&&(ready?<SimBar s={simState}/>:<p className="caption">{round===2?'Crews wait at the staging area until every start date after the changed crew is revised.':'Crews wait at the staging area until every crew starts after the one ahead has finished.'}</p>)}
+      {tab==='lob'&&(ready?<SimBar s={simState}/>:<p className="caption">{round===2?'Crews wait at the staging area until every start date after the changed crew is revised.':'Crews wait at the staging area until every crew starts the day the one ahead finishes.'}</p>)}
       {(tab==='cmp'||((tab==='review'||tab==='r1view')&&r1))&&<SimBar s={simState}/>}
     </div>
   </div>);
