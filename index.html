@@ -362,6 +362,27 @@ input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:3
 .gate-note{font-size:13.5px;margin:6px 0}
 .hint{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--info-soft);font-size:13.5px}
 .stable.cpf td{font-size:13px;padding:3px 6px}
+.hl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 4px}
+.hl-card{border:1px solid var(--rule);border-radius:10px;padding:10px 12px;background:var(--panel)}
+.hl-l{font-size:13px;color:var(--muted)}
+.hl-v{font:600 21px 'Barlow Semi Condensed',sans-serif;margin:2px 0 4px}
+.hl-v .muted{font-weight:500}
+.hl-best{font-size:12.5px;color:var(--muted);margin-top:6px;border-top:1px solid var(--rule);padding-top:6px}
+.hl-best b{color:var(--text,inherit)}
+.crew-t td{vertical-align:top;padding-top:7px;padding-bottom:7px}
+.crew-t tr.same td{color:var(--muted)}
+.crew-t th,.crew-t td{text-align:left!important}
+.crew-t td:nth-child(3),.crew-t td:nth-child(4){white-space:nowrap}
+.crew-t td.mach{font-size:13px;line-height:1.35}
+.ctag{display:inline-block;margin-left:6px;font-style:normal;font-size:11px;font-weight:600;border-radius:999px;padding:0 7px;line-height:17px}
+.ctag.up{background:rgba(42,138,85,.14);color:#1E6B41}
+.ctag.down{background:rgba(212,112,28,.15);color:#9A4F12}
+.view-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.view-head h3{margin:0}
+.seg2{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg2 button{border:0;background:transparent;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg2 button.on{background:var(--soft);color:inherit;font-weight:600}
+@media (max-width:520px){.hl{grid-template-columns:1fr}}
 .results-card{border:1px solid var(--rule);border-radius:10px;padding:8px 10px;margin:10px 0;background:var(--panel);overflow-x:auto}
 .res-t td,.res-t th{white-space:nowrap}
 .scorecard{display:flex;gap:14px;align-items:center;border:1px solid var(--rule);border-radius:10px;padding:10px 14px;margin:10px 0;background:var(--panel)}
@@ -1205,97 +1226,59 @@ function R1View({s}){
 }
 
 function CompareTab({s}){
-  const a=s.r1,b=roundStats(s.eq,s.starts);
-  const kpis=[
-    {l:'Project duration',a:a.project,b:b.project,f:v=>plural(v,'day'),fd:v=>v+'d',better:'lower'},
-    {l:'Direct crew cost',a:a.direct,b:b.direct,f:money,fd:money,better:'lower'},
-    {l:'Daily cost',a:a.daily,b:b.daily,f:money,fd:money,better:null},
-    {l:'Slowest crew rate',a:a.minR,b:b.minR,f:v=>fmt(v)+' ft/day',fd:v=>fmt(v),better:'higher'}];
-  const maxR=Math.max(...a.R,...b.R),maxC=Math.max(a.direct,b.direct);
+  const a=s.r1,b=roundStats(s.eq,s.starts),o=s.opt;
+  const [view,setView]=useState('timeline');
   const dom=Math.max(Core.domain(a.D),Core.domain(b.D));
+  const short=(t,e)=>t.types.filter(ty=>(e&&e[ty.id])>0).map(ty=>`${e[ty.id]}× ${ty.n.split(' ')[0]}`).join(', ')||'none';
+  const bi=a.slow[0],di=s.rev.donor;
+  const head=[
+    {l:'Project duration',a:a.project,b:b.project,best:o.bestT,f:v=>plural(v,'day'),fd:v=>v+' days'},
+    {l:'Crew cost',a:a.direct,b:b.direct,best:o.bestC,f:money,fd:money}];
   return(
   <div className="cmp">
     <h2>Round 1 vs Round 2</h2>
-    {(()=>{const o=s.opt,rows=[
-        {l:'Duration',a:a.project,b:b.project,best:o.bestT,f:v=>plural(v,'day'),fd:v=>v+' d'},
-        {l:'Cost',a:a.direct,b:b.direct,best:o.bestC,f:money,fd:money}];
-      return(<section className="results-card">
-        <table className="stable res-t">
-          <thead><tr><th></th><th>Round 1</th><th>Round 2</th><th>Improvement</th><th>Best possible</th><th>Gap to best</th></tr></thead>
-          <tbody>{rows.map(r=>{const imp=r.a-r.b,gap=r.b-r.best;return(
-            <tr key={r.l}><td><b>{r.l}</b></td><td>{r.f(r.a)}</td><td><b>{r.f(r.b)}</b></td>
-              <td className={imp>0?'good-t':imp<0?'bad-t':''}>{imp>0?'▼ ':imp<0?'▲ ':''}{r.fd(Math.abs(imp))} ({Math.abs(imp/r.a*100).toFixed(0)}%)</td>
-              <td>{r.f(r.best)}</td>
-              <td className={gap<=0?'good-t':''}>{gap<=0?'✓ matched':`${r.fd(gap)} (${(gap/r.best*100).toFixed(0)}%)`}</td></tr>)})}</tbody>
-        </table>
-        <p className="muted" style={{fontSize:12.5,margin:'6px 0 0'}}>Best possible = the fastest and the cheapest Round 2 any machine mix can reach on {s.siteName} within the same daily budget. They come from different mixes.</p>
-      </section>)})()}
-    <section className="detailed">
-    <h3 style={{margin:"14px 0 0"}}>Detailed results</h3>
-
+    <div className="hl">
+      {head.map(h=>{const imp=h.a-h.b,gap=h.b-h.best;return(
+        <div className="hl-card" key={h.l}>
+          <div className="hl-l">{h.l}</div>
+          <div className="hl-v"><span className="muted">{h.f(h.a)}</span> → {h.f(h.b)}</div>
+          <span className={'delta '+(imp>0?'good':imp<0?'bad':'flat')}>{imp===0?'no change':`${imp>0?'▼':'▲'} ${h.fd(Math.abs(imp))} (${Math.abs(imp/h.a*100).toFixed(0)}%)`}</span>
+          <div className="hl-best">{gap<=0?<span className="good-t">✓ Best possible reached</span>:<>Best possible {h.f(h.best)} · <b>{h.fd(gap)}</b> away</>}</div>
+        </div>)})}
+    </div>
 
     <section className="block">
-      <h3>Crew rates (ft/day)</h3>
-      <div className="rates">
-        {TRADES.map((t,i)=><div className="rate-pair" key={t.k}>
-          <span className="rate-n">{t.name}</span>
-          <div>
-            <div className="rate-row2"><span className="rl">R1</span><span className="rate-bar"><i style={{width:(a.R[i]/maxR*100)+'%',background:tc(t.k),opacity:.4}}/></span><span className="rate-v">{fmt(a.R[i])}{a.slow.includes(i)&&<em className="slow-tag">slowest</em>}</span></div>
-            <div className="rate-row2"><span className="rl">R2</span><span className="rate-bar"><i style={{width:(b.R[i]/maxR*100)+'%',background:tc(t.k)}}/></span><span className="rate-v">{fmt(b.R[i])}{b.slow.includes(i)&&<em className="slow-tag">slowest</em>}</span></div>
-          </div>
-        </div>)}
-      </div>
+      <h3>What you changed</h3>
+      <table className="stable crew-t">
+        <thead><tr><th>Crew</th><th>Machines</th><th>ft/day</th><th>Days</th></tr></thead>
+        <tbody>{TRADES.map((t,i)=>{const dd=b.D[i]-a.D[i],same=JSON.stringify(a.eq[t.k])===JSON.stringify(b.eq[t.k]);return(
+          <tr key={t.k} className={same?'same':''}>
+            <td><span className="sw" style={{background:tc(t.k),display:'inline-block',marginRight:7}}/>{t.name}
+              {i===bi&&<em className="ctag up">bottleneck</em>}{i===di&&<em className="ctag down">gave budget</em>}</td>
+            <td className="mach">{same?<span className="muted">{short(t,b.eq[t.k])}</span>:<><div className="muted">{short(t,a.eq[t.k])}</div><div>→ {short(t,b.eq[t.k])}</div></>}</td>
+            <td>{a.R[i]===b.R[i]?fmt(b.R[i]):<><span className="muted">{fmt(a.R[i])}</span> → {fmt(b.R[i])}</>}</td>
+            <td>{dd===0?b.D[i]:<><span className="muted">{a.D[i]}</span> → {b.D[i]} <span className={dd<0?'good-t':'bad-t'}>({dd>0?'+':'−'}{Math.abs(dd)})</span></>}</td>
+          </tr>)})}</tbody>
+      </table>
     </section>
 
     <section className="block">
-      <h3>Budget</h3>
-      {[['Round 1',a],['Round 2',b]].map(([l,r])=><div className="bud-row" key={l}>
-        <span className="rl">{l}</span>
-        <div className="budget" style={{width:(r.direct/maxC*100)+'%'}}>
-          {TRADES.map((t,i)=>{const v=r.D[i]*Core.cost(t,r.eq[t.k]);return <div key={t.k} className="budget-seg" style={{width:(v/r.direct*100)+'%',background:tc(t.k)}} title={`${t.name}: ${money(v)}`}/>})}
+      <div className="view-head"><h3>Schedule</h3>
+        <div className="seg2" role="group" aria-label="Schedule view">
+          {[['timeline','Timeline'],['lob','LOB chart']].map(([k,l])=><button key={k} className={view===k?'on':''} aria-pressed={view===k} onClick={()=>{setView(k);s.note('details','compare-'+k)}}>{l}</button>)}
         </div>
-        <b className="bud-v">{money(r.direct)}</b>
-      </div>)}
+      </div>
+      {view==='timeline'?<DurCompare a={a} b={b}/>:<>
+        <div className="lob-wrap"><LobChart starts={b.starts} durs={b.D} dom={dom} plotK={6} chk={null} hover={null} svgRef={s.cmpRef} h={NOOP} dragI={null} finalLocked ghost={{starts:a.starts,durs:a.D}}/></div>
+        <p className="muted legend-note"><span className="dash"/>Round 1 dashed <span className="solid"/>Round 2 solid</p></>}
     </section>
 
-    {s.rev.donor!=null&&(()=>{const di=s.rev.donor,bi=a.slow[0],net=(b.D[di]-a.D[di])+(b.D[bi]-a.D[bi]);return(
-    <section className="block">
-      <h3>Reallocation</h3>
-      <table className="stable ledger">
-        <thead><tr><th>Crew</th><th>Daily cost</th><th>Days</th><th>Change</th></tr></thead>
-        <tbody>
-          {[di,bi].map(i=>{const t=TRADES[i],dl=b.D[i]-a.D[i],dc=Core.cost(t,b.eq[t.k])-Core.cost(t,a.eq[t.k]);return(
-            <tr key={t.k}><td><span className="sw" style={{background:tc(t.k),display:'inline-block',marginRight:8}}/>{t.name} <span className="muted">({i===di?'gave':'received'})</span></td>
-              <td>{dc>=0?'+':'−'}{money(Math.abs(dc))}</td><td>{a.D[i]} → {b.D[i]}</td>
-              <td className={dl>0?'bad-t':dl<0?'good-t':''}>{dl>0?'+':dl<0?'−':''}{Math.abs(dl)} d</td></tr>)})}
-          <tr className="proj"><td>Net</td><td>{(b.daily-a.daily)>=0?'+':'−'}{money(Math.abs(b.daily-a.daily))}</td><td></td><td className={net>0?'bad-t':net<0?'good-t':''}>{net>0?'+':net<0?'−':''}{Math.abs(net)} d</td></tr>
-        </tbody>
-      </table>
-    </section>)})()}
-
-    <section className="block">
-      <h3>What changed</h3>
-      <table className="stable chg">
-        <thead><tr><th>Crew</th><th>Round 1</th><th>Round 2</th><th>Days</th></tr></thead>
-        <tbody>{TRADES.map((t,i)=><tr key={t.k}>
-          <td><span className="sw" style={{background:tc(t.k),display:'inline-block',marginRight:8}}/>{t.name}</td>
-          <td>{fleetText(t,a.eq[t.k])}</td><td>{fleetText(t,b.eq[t.k])}</td><td>{a.D[i]} → {b.D[i]}</td></tr>)}</tbody>
-      </table>
-    </section>
-
-    </section>
-    <DurCompare a={a} b={b}/>
-    <section className="block">
-      <h3>LOB schedules: Round 1 vs Round 2</h3>
-      <div className="lob-wrap"><LobChart starts={b.starts} durs={b.D} dom={dom} plotK={6} chk={null} hover={null} svgRef={s.cmpRef} h={NOOP} dragI={null} finalLocked ghost={{starts:a.starts,durs:a.D}}/></div>
-      <p className="muted legend-note"><span className="dash"/>Round 1 dashed <span className="solid"/>Round 2 solid</p>
-    </section>
     <section className="block">
       <h3>Reflection</h3>
-      <label className="field-label" htmlFor="plus">Plus: what worked in Round 2?</label>
-      <textarea id="plus" className="note" rows="2" value={s.refl.plus} onChange={ev=>s.setRefl({...s.refl,plus:ev.target.value})}/>
-      <label className="field-label" htmlFor="delta">Delta: what would you change next time?</label>
-      <textarea id="delta" className="note" rows="2" value={s.refl.delta} onChange={ev=>s.setRefl({...s.refl,delta:ev.target.value})}/>
+      <label className="field-label" htmlFor="plus">Plus: What was the most memorable “aha!” moment during the game?</label>
+      <textarea id="plus" className="note" rows="3" value={s.refl.plus} onChange={ev=>s.setRefl({...s.refl,plus:ev.target.value})}/>
+      <label className="field-label" htmlFor="delta">Delta: If you could change one thing about the game, what would it be?</label>
+      <textarea id="delta" className="note" rows="3" value={s.refl.delta} onChange={ev=>s.setRefl({...s.refl,delta:ev.target.value})}/>
       {(()=>{const st=s.logStat.cmp,ready=s.refl.plus.trim()&&s.refl.delta.trim(),sent=st&&st!=='sending'&&!s.cmpDirty;return(
         <div className="btn-row" style={{alignItems:'center'}}>
           <button className="btn btn-primary" disabled={!ready||st==='sending'||sent} onClick={s.submitReflection}>{st&&st!=='sending'&&s.cmpDirty?'Submit update':'Submit reflection'}</button>
@@ -1303,7 +1286,6 @@ function CompareTab({s}){
         </div>)})()}
     </section>
   </div>)}
-
 /* ───────── 3D site simulation ───────── */
 const HEX={exc:0x2F6FB5,pipe:0x2A8A55,back:0xD4701C};
 const L3=240, ftX=ft=>ft/PJ*L3, SPACING=6.5;
