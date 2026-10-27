@@ -1230,32 +1230,8 @@ function CompareTab({s}){
         </table>
         <p className="muted" style={{fontSize:12.5,margin:'6px 0 0'}}>Best possible = the fastest and the cheapest Round 2 any machine mix can reach on {s.siteName} within the same daily budget. They come from different mixes.</p>
       </section>)})()}
-    <DurCompare a={a} b={b}/>
-    <section className="block">
-      <h3>LOB schedules: Round 1 vs Round 2</h3>
-      <div className="lob-wrap"><LobChart starts={b.starts} durs={b.D} dom={dom} plotK={6} chk={null} hover={null} svgRef={s.cmpRef} h={NOOP} dragI={null} finalLocked ghost={{starts:a.starts,durs:a.D}}/></div>
-      <p className="muted legend-note"><span className="dash"/>Round 1 dashed <span className="solid"/>Round 2 solid</p>
-    </section>
-    <section className="block">
-      <h3>Reflection</h3>
-      <label className="field-label" htmlFor="plus">Plus: what worked in Round 2?</label>
-      <textarea id="plus" className="note" rows="2" value={s.refl.plus} onChange={ev=>s.setRefl({...s.refl,plus:ev.target.value})}/>
-      <label className="field-label" htmlFor="delta">Delta: what would you change next time?</label>
-      <textarea id="delta" className="note" rows="2" value={s.refl.delta} onChange={ev=>s.setRefl({...s.refl,delta:ev.target.value})}/>
-      {(()=>{const st=s.logStat.cmp,ready=s.refl.plus.trim()&&s.refl.delta.trim(),sent=st&&st!=='sending'&&!s.cmpDirty;return(
-        <div className="btn-row" style={{alignItems:'center'}}>
-          <button className="btn btn-primary" disabled={!ready||st==='sending'||sent} onClick={s.submitReflection}>{st&&st!=='sending'&&s.cmpDirty?'Submit update':'Submit reflection'}</button>
-          <span className="muted" style={{fontSize:13}}>{!ready?'Write a plus and a delta to submit.':st==='sending'?'Saving…':st==='sent'?'✓ Saved':st==='queued'?'Saved on this device; will retry':st==='off'?'Recorded (not connected to a sheet)':''}</span>
-        </div>)})()}
-    </section>
-    <More title="See detailed results" s={s} name="compare-details">
-    <div className="kpis">
-      {kpis.map(k=><div className="kpi" key={k.l}>
-        <div className="kpi-l">{k.l}</div>
-        <div className="kpi-v"><span className="muted">{k.f(k.a)}</span> → <b>{k.f(k.b)}</b></div>
-        <Delta a={k.a} b={k.b} fmtv={k.fd} better={k.better}/>
-      </div>)}
-    </div>
+    <section className="detailed">
+    <h3 style={{margin:"14px 0 0"}}>Detailed results</h3>
 
 
     <section className="block">
@@ -1307,7 +1283,25 @@ function CompareTab({s}){
       </table>
     </section>
 
-    </More>
+    </section>
+    <DurCompare a={a} b={b}/>
+    <section className="block">
+      <h3>LOB schedules: Round 1 vs Round 2</h3>
+      <div className="lob-wrap"><LobChart starts={b.starts} durs={b.D} dom={dom} plotK={6} chk={null} hover={null} svgRef={s.cmpRef} h={NOOP} dragI={null} finalLocked ghost={{starts:a.starts,durs:a.D}}/></div>
+      <p className="muted legend-note"><span className="dash"/>Round 1 dashed <span className="solid"/>Round 2 solid</p>
+    </section>
+    <section className="block">
+      <h3>Reflection</h3>
+      <label className="field-label" htmlFor="plus">Plus: what worked in Round 2?</label>
+      <textarea id="plus" className="note" rows="2" value={s.refl.plus} onChange={ev=>s.setRefl({...s.refl,plus:ev.target.value})}/>
+      <label className="field-label" htmlFor="delta">Delta: what would you change next time?</label>
+      <textarea id="delta" className="note" rows="2" value={s.refl.delta} onChange={ev=>s.setRefl({...s.refl,delta:ev.target.value})}/>
+      {(()=>{const st=s.logStat.cmp,ready=s.refl.plus.trim()&&s.refl.delta.trim(),sent=st&&st!=='sending'&&!s.cmpDirty;return(
+        <div className="btn-row" style={{alignItems:'center'}}>
+          <button className="btn btn-primary" disabled={!ready||st==='sending'||sent} onClick={s.submitReflection}>{st&&st!=='sending'&&s.cmpDirty?'Submit update':'Submit reflection'}</button>
+          <span className="muted" style={{fontSize:13}}>{!ready?'Write a plus and a delta to submit.':st==='sending'?'Saving…':st==='sent'?'✓ Saved':st==='queued'?'Saved on this device; will retry':st==='off'?'Recorded (not connected to a sheet)':''}</span>
+        </div>)})()}
+    </section>
   </div>)}
 
 /* ───────── 3D site simulation ───────── */
