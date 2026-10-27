@@ -1789,13 +1789,23 @@ function writeQ(q){try{localStorage.setItem(QKEY,JSON.stringify(q.slice(-20)))}c
 async function postOne(body){
   await fetch(LOG_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
 }
+/* each log gets a one-time ID; an item already being sent is never sent again in parallel,
+   and the sheet skips any ID it has already written */
+const SENDING=new Set();
+const newQid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 async function sendLog(body){
   if(!LOG_URL)return 'off';
-  const q=readQ();q.push(body);writeQ(q);
-  const left=[];
-  for(const item of q){try{await postOne(item)}catch(e){left.push(item)}}
-  writeQ(left);
-  return left.length?'queued':'sent';
+  body.qid=body.qid||newQid();body.fields=Object.assign({},body.fields,{'Log ID':body.qid});
+  writeQ(readQ().map(x=>x.qid?x:{...x,qid:newQid()}).concat([body]));
+  let failed=false;
+  for(const item of readQ()){
+    if(SENDING.has(item.qid))continue;
+    SENDING.add(item.qid);
+    try{await postOne(item);writeQ(readQ().filter(x=>x.qid!==item.qid))}
+    catch(e){if(item.qid===body.qid)failed=true}
+    finally{SENDING.delete(item.qid)}
+  }
+  return failed?'queued':'sent';
 }
 
 /* ───────── App ───────── */
