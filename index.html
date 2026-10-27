@@ -362,6 +362,8 @@ input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:3
 .gate-note{font-size:13.5px;margin:6px 0}
 .hint{margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--info-soft);font-size:13.5px}
 .stable.cpf td{font-size:13px;padding:3px 6px}
+.results-card{border:1px solid var(--rule);border-radius:10px;padding:8px 10px;margin:10px 0;background:var(--panel);overflow-x:auto}
+.res-t td,.res-t th{white-space:nowrap}
 .scorecard{display:flex;gap:14px;align-items:center;border:1px solid var(--rule);border-radius:10px;padding:10px 14px;margin:10px 0;background:var(--panel)}
 .sc-big{display:flex;align-items:baseline;gap:4px}
 .sc-big b{font:700 40px 'Barlow Semi Condensed',sans-serif;line-height:1}
@@ -1214,14 +1216,19 @@ function CompareTab({s}){
   return(
   <div className="cmp">
     <h2>Round 1 vs Round 2</h2>
-    {(()=>{const sc=score(a,b.project,b.direct,s.opt);return(
-      <section className="scorecard">
-        <div className="sc-big"><b>{sc}</b><span>/ 100</span></div>
-        <div className="sc-rows">
-          <div><span className="muted">Duration</span> {plural(a.project,'day')} → <b>{plural(b.project,'day')}</b> <span className="muted">· best possible {s.opt.bestT}</span></div>
-          <div><span className="muted">Cost</span> {money(a.direct)} → <b>{money(b.direct)}</b> <span className="muted">· best possible {money(s.opt.bestC)}</span></div>
-          <div className="muted" style={{fontSize:12.5}}>How the score works <Info s={s} name="score">50 points for closing the gap to the best possible duration, 50 for the best possible cost on {s.siteName}.</Info></div>
-        </div>
+    {(()=>{const o=s.opt,rows=[
+        {l:'Duration',a:a.project,b:b.project,best:o.bestT,f:v=>plural(v,'day'),fd:v=>v+' d'},
+        {l:'Cost',a:a.direct,b:b.direct,best:o.bestC,f:money,fd:money}];
+      return(<section className="results-card">
+        <table className="stable res-t">
+          <thead><tr><th></th><th>Round 1</th><th>Round 2</th><th>Improvement</th><th>Best possible</th><th>Gap to best</th></tr></thead>
+          <tbody>{rows.map(r=>{const imp=r.a-r.b,gap=r.b-r.best;return(
+            <tr key={r.l}><td><b>{r.l}</b></td><td>{r.f(r.a)}</td><td><b>{r.f(r.b)}</b></td>
+              <td className={imp>0?'good-t':imp<0?'bad-t':''}>{imp>0?'▼ ':imp<0?'▲ ':''}{r.fd(Math.abs(imp))} ({Math.abs(imp/r.a*100).toFixed(0)}%)</td>
+              <td>{r.f(r.best)}</td>
+              <td className={gap<=0?'good-t':''}>{gap<=0?'✓ matched':`${r.fd(gap)} (${(gap/r.best*100).toFixed(0)}%)`}</td></tr>)})}</tbody>
+        </table>
+        <p className="muted" style={{fontSize:12.5,margin:'6px 0 0'}}>Best possible = the fastest and the cheapest Round 2 any machine mix can reach on {s.siteName} within the same daily budget. They come from different mixes.</p>
       </section>)})()}
     <DurCompare a={a} b={b}/>
     <section className="block">
@@ -1650,7 +1657,7 @@ function npcLine(x){
     if(simDay>0)return say(`Paused on day ${Math.floor(simDay)}. Press play when you're ready.`);
     return say(`The schedule is clean. Press Play and watch the site.`,'good');
   }
-  if(tab==='cmp')return cmpScore!=null?say(`Score: ${cmpScore} out of 100. The best possible here was ${opt.bestT} days and ${money(opt.bestC)}. Write down what worked in the plus and delta boxes.`,'good'):null;
+  if(tab==='cmp')return cmpScore?say(`Round 2: ${cmpScore.T} days and ${money(cmpScore.C)}. The best possible here was ${opt.bestT} days and ${money(opt.bestC)}. Write down what worked in the plus and delta boxes.`,'good'):null;
   return null;
 }
 
@@ -1765,7 +1772,7 @@ function roundFields(ctx){
 }
 /* one sheet row comparing both rounds */
 function compareFields(ctx){
-  const {a,b,site,player,refl,score,attempt}=ctx,f={};
+  const {a,b,site,player,refl,opt,attempt}=ctx,f={};
   const sa=Core.stats(a.R),sb=Core.stats(b.R);
   f['Session ID']=SESSION_ID;f['Player ID']=player;f['Site']=SITES[site].name;f['Submission']=attempt;
   f['R1 project duration (days)']=a.project;f['R2 project duration (days)']=b.project;
@@ -1779,7 +1786,11 @@ function compareFields(ctx){
   f['Overall productivity improvement (%)']=pct(P(a),P(b));
   f['R1 direct cost ($)']=a.direct;f['R2 direct cost ($)']=b.direct;f['Cost change (%)']=pct(a.direct,b.direct);
   f['R1 RMR']=r2d(sa.rmr,3);f['R2 RMR']=r2d(sb.rmr,3);f['R1 CV']=r2d(sa.cv,3);f['R2 CV']=r2d(sb.cv,3);
-  f['Score (/100)']=score;f['Plus']=refl.plus.trim();f['Delta']=refl.delta.trim();
+  f['Duration improvement (days)']=a.project-b.project;f['Cost improvement ($)']=a.direct-b.direct;
+  if(opt){f['Best possible duration (days)']=opt.bestT;f['Best possible cost ($)']=opt.bestC;
+    f['Gap to best duration (days)']=b.project-opt.bestT;f['Gap to best duration (%)']=r2d((b.project-opt.bestT)/opt.bestT*100,1);
+    f['Gap to best cost ($)']=b.direct-opt.bestC;f['Gap to best cost (%)']=r2d((b.direct-opt.bestC)/opt.bestC*100,1);}
+  f['Plus']=refl.plus.trim();f['Delta']=refl.delta.trim();
   return f;
 }
 /* send to the sheet; failures wait in this browser and retry on the next send */
@@ -1882,10 +1893,10 @@ function App(){
   }
   async function submitReflection(){
     if(!r1)return;
-    const b=roundStats(eq,starts),sc=opt?score(r1,b.project,b.direct,opt):'';
+    const b=roundStats(eq,starts);
     attempts.current.cmp++;
     setLogStat(x=>({...x,cmp:'sending'}));
-    const fields=compareFields({a:r1,b,site,player,refl,score:sc,attempt:attempts.current.cmp});
+    const fields=compareFields({a:r1,b,site,player,refl,opt,attempt:attempts.current.cmp});
     fields['Details opened']=[...uiUse.current.details].join(', ');fields['Tooltips opened']=[...uiUse.current.tips].join(', ');
     const png=LOG_URL?await svgToPng(lobCompareSvg(r1,b,`${player||'Player'} · ${SITES[site].name} · Round 1 vs Round 2`)):'';
     const rpng=LOG_URL?await svgToPng(resultsSvg(r1,b,`${player||'Player'} · ${SITES[site].name} · Round 1 vs Round 2 results`)):'';
@@ -2019,7 +2030,7 @@ function App(){
     revise,ready,bIdx,snapStart,canRedo:i=>round===1||(r1&&(r1.slow.includes(i)||rev.donor===i)),lastR2Tab,doneR2:doneR[2],
     round,r1,rev,pickBottleneck,pickDonor,overCap,setNote,startRound2,resetFleet,changedR2,prevRef,refl,setRefl,cmpRef};
   const npc=npcLine({tab,round,site,eq,activeEq,g,D,R,U,locked,plotK,starts,chk,ready,simDay,endDay,playing,r1,rev,opt,revise,overCap,changedR2,projT,projC,gatePass,doneR,
-    cmpScore:tab==='cmp'&&r1&&opt?score(r1,roundStats(eq,starts).project,roundStats(eq,starts).direct,opt):null});
+    cmpScore:tab==='cmp'&&r1&&opt?{T:roundStats(eq,starts).project,C:roundStats(eq,starts).direct}:null});
   const simState={...state,note,eq:ctx.eq,starts:ctx.starts,D:ctx.D,cmpR:tab==='cmp'?cmpR:null,setCmpR};
 
   const tabs=round===1?[
