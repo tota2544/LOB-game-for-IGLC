@@ -139,6 +139,12 @@ input[type=range].slider{-webkit-appearance:none;appearance:none;flex:1;height:3
 .how .n{width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--panel);display:grid;place-items:center;font:600 14px 'Barlow Semi Condensed',sans-serif}
 .how b{display:block;font-weight:600}
 .how span.t{color:var(--muted);font-size:14px}
+.pid-box{margin-bottom:12px}
+.pid-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+.pid-grid .note{resize:none;font-size:16px;letter-spacing:.04em}
+.pid-out{margin-top:8px;font-size:14px}
+.pid-out b{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em}
+@media (max-width:420px){.pid-grid{grid-template-columns:1fr}}
 .reading.one{grid-template-columns:1fr;max-width:300px}
 .reading{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
 .reading figure{margin:0;border:1px solid var(--rule);border-radius:8px;padding:6px 6px 8px;background:var(--panel)}
@@ -762,6 +768,29 @@ function MiniLob({collide}){return(
 
 
 /* ───────── Intro ───────── */
+/* Player ID = FAVORITE COLOR in capitals + "_" + last 4 digits, e.g. RED_1234 */
+function PlayerId({s}){
+  const init=/^([A-Z]+)_(\d{4})$/.exec(s.player||'');
+  const [color,setColor]=useState(init?init[1]:''),[digits,setDigits]=useState(init?init[2]:'');
+  const ok=color.length>=2&&/^\d{4}$/.test(digits),id=ok?`${color}_${digits}`:'';
+  useEffect(()=>{s.setPlayer(id)},[id]);
+  return(<div className="pid-box">
+    <div className="pid-grid">
+      <div>
+        <label className="field-label" htmlFor="pid">Your favorite color</label>
+        <input id="pid" className="note" value={color} placeholder="RED" autoComplete="off"
+          onChange={ev=>setColor(ev.target.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,15))}/>
+      </div>
+      <div>
+        <label className="field-label" htmlFor="pid4">Last 4 digits of your number</label>
+        <input id="pid4" className="note" value={digits} placeholder="1234" inputMode="numeric" autoComplete="off"
+          onChange={ev=>setDigits(ev.target.value.replace(/\D/g,'').slice(0,4))}/>
+      </div>
+    </div>
+    <div className="pid-out">Your player ID: <b>{ok?id:(color||'COLOR')+'_'+(digits.padEnd(4,'•'))}</b></div>
+    <div className="muted" style={{fontSize:12.5,marginTop:2}}>Use the same answers every time. Your results are saved for the study under this ID.</div>
+  </div>)}
+
 function IntroTab({s}){return(
   <div>
     <h1>Plan the pipeline.</h1>
@@ -774,11 +803,7 @@ function IntroTab({s}){return(
     <div className="reading one">
       <figure><MiniLob/><figcaption>Each crew starts the day the one before finishes. A steeper line is a faster crew.</figcaption></figure>
     </div>
-    {LOG_URL&&<div style={{marginBottom:12}}>
-      <label className="field-label" htmlFor="pid">Player ID</label>
-      <input id="pid" className="note" style={{resize:'none'}} value={s.player} onChange={ev=>s.setPlayer(ev.target.value.slice(0,40))} placeholder="Your study ID"/>
-      <div className="muted" style={{fontSize:12.5,marginTop:4}}>Your results are saved for the study under this ID.</div>
-    </div>}
+    {LOG_URL&&<PlayerId s={s}/>}
     <button className="btn btn-primary" style={{width:'100%'}} disabled={!!LOG_URL&&!s.player.trim()} onClick={()=>s.setTab('equip')}>Start</button>
   </div>)}
 
