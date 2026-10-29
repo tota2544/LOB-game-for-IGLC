@@ -1647,6 +1647,29 @@ const pct=(a,b)=>a?r2d((b-a)/a*100,1):0;                         // change from 
 const CREW_HEX={exc:'#2F6FB5',pipe:'#2A8A55',back:'#D4701C'};
 
 /* a standalone LOB chart (fixed colours) so it renders the same in the sheet's image as on screen */
+/* schedule table + budget bar for one round, drawn at (x0,y0); returns [svg, height] */
+function sbBlock(st,x0,y0,title){
+  const K='#15242B',M='#55666E',W=900,cols=[['Crew',x0+14,'start'],['Equipment',x0+130,'start'],['Rate (ft/day)',x0+430,'end'],['Duration',x0+510,'end'],['$/day',x0+590,'end'],['Start',x0+650,'end'],['End',x0+710,'end'],['Cost',x0+W-34,'end']];
+  let o=`<text x="${x0+14}" y="${y0+22}" font-size="15" font-weight="700" fill="${K}">${title}</text>`,y=y0+48;
+  o+=cols.map(c=>`<text x="${c[1]}" y="${y}" font-size="11.5" font-weight="700" text-anchor="${c[2]}" fill="${M}">${c[0]}</text>`).join('');
+  o+=`<line x1="${x0+10}" x2="${x0+W-30}" y1="${y+8}" y2="${y+8}" stroke="#C9D2D5"/>`;
+  TRADES.forEach((t,i)=>{y+=28;const c=Core.cost(t,st.eq[t.k]),v=[t.name,fleetText(t,st.eq[t.k]),fmt(st.R[i]),st.D[i]+' d',money(c),st.starts[t.k],st.ends[i],money(st.D[i]*c)];
+    o+=`<rect x="${x0+10}" y="${y-17}" width="4" height="22" fill="${CREW_HEX[t.k]}"/>`;
+    o+=cols.map((cl,j)=>`<text x="${j===0?cl[1]+8:cl[1]}" y="${y}" font-size="12.5" text-anchor="${cl[2]}" fill="${K}"${j===0?' font-weight="700"':''}>${v[j]}</text>`).join('');});
+  y+=12;o+=`<line x1="${x0+10}" x2="${x0+W-30}" y1="${y}" y2="${y}" stroke="${K}"/>`;y+=20;
+  o+=`<text x="${x0+22}" y="${y}" font-size="12.5" font-weight="700" fill="${K}">Project</text><text x="${cols[3][1]}" y="${y}" font-size="12.5" font-weight="700" text-anchor="end" fill="${K}">${st.project} d</text><text x="${cols[4][1]}" y="${y}" font-size="12.5" font-weight="700" text-anchor="end" fill="${K}">${money(st.daily)}</text><text x="${cols[5][1]}" y="${y}" font-size="12.5" text-anchor="end" fill="${K}">${st.first}</text><text x="${cols[6][1]}" y="${y}" font-size="12.5" text-anchor="end" fill="${K}">${st.last}</text><text x="${cols[7][1]}" y="${y}" font-size="12.5" font-weight="700" text-anchor="end" fill="${K}">${money(st.direct)}</text>`;
+  y+=26;o+=`<text x="${x0+14}" y="${y}" font-size="12.5" font-weight="700" fill="${K}">Budget: ${money(st.direct)}</text>`;y+=10;
+  let bx=x0+10;const bw=W-40;
+  TRADES.forEach((t,i)=>{const v=st.D[i]*Core.cost(t,st.eq[t.k]),w=v/st.direct*bw;
+    o+=`<rect x="${bx}" y="${y}" width="${Math.max(0,w-2)}" height="24" rx="3" fill="${CREW_HEX[t.k]}"/>`;
+    if(w>90)o+=`<text x="${bx+w/2}" y="${y+16}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#fff">${t.name} ${Math.round(v/st.direct*100)}% · ${money(v)}</text>`;bx+=w;});
+  return [o,y+24+14-y0];
+}
+function schedBudgetSvg(rounds,label){
+  const W=940;let body='',y=48;
+  rounds.forEach(([st,title])=>{const [o,h]=sbBlock(st,20,y,title);body+=`<rect x="12" y="${y}" width="${W-24}" height="${h}" rx="10" fill="#fff" stroke="#DDE3E5"/>`+o;y+=h+16;});
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${y+4}" viewBox="0 0 ${W} ${y+4}" font-family="Arial, sans-serif"><rect width="${W}" height="${y+4}" fill="#F5F7F8"/><text x="20" y="32" font-size="18" font-weight="700" fill="#15242B">${label}</text>${body}</svg>`;
+}
 /* the paper's four result charts (Figs 7–10) for one player, as one image for the Comparison sheet */
 function resultsSvg(a,b,label){
   const W=960,H=700,sa=Core.stats(a.R),sb=Core.stats(b.R),G='#9AA5AB',K='#15242B';
@@ -1864,7 +1887,8 @@ function App(){
     uiUse.current={tips:new Set(),details:new Set()};
     setLogStat(x=>({...x,[n]:'sending'}));
     const png=await svgToPng(lobSvgString(st,`${player||'Player'} · ${SITES[site].name} · Round ${n} · ${st.project} days`));
-    const res=await sendLog({type:'round',sheet:'Rounds',fields,lobPng:png,chartName:`${player||SESSION_ID}_${SITES[site].name}_R${n}_a${attempts.current[n]}.png`});
+    const spng=await svgToPng(schedBudgetSvg([[st,`Round ${n} schedule and budget`]],`${player||'Player'} · ${SITES[site].name} · Round ${n}`));
+    const res=await sendLog({type:'round',sheet:'Rounds',fields,lobPng:png,chartName:`${player||SESSION_ID}_${SITES[site].name}_R${n}_a${attempts.current[n]}.png`,schedPng:spng,schedName:`${player||SESSION_ID}_${SITES[site].name}_R${n}_schedule_a${attempts.current[n]}.png`});
     setLogStat(x=>({...x,[n]:res}));
   }
   async function submitReflection(){
@@ -1876,7 +1900,8 @@ function App(){
     fields['Details opened']=[...uiUse.current.details].join(', ');fields['Tooltips opened']=[...uiUse.current.tips].join(', ');
     const png=LOG_URL?await svgToPng(lobCompareSvg(r1,b,`${player||'Player'} · ${SITES[site].name} · Round 1 vs Round 2`)):'';
     const rpng=LOG_URL?await svgToPng(resultsSvg(r1,b,`${player||'Player'} · ${SITES[site].name} · Round 1 vs Round 2 results`)):'';
-    const res=LOG_URL?await sendLog({type:'compare',sheet:'Comparison',fields,resultsPng:rpng,resultsName:`${player||SESSION_ID}_${SITES[site].name}_results_s${attempts.current.cmp}.png`,lobPng:png,chartName:`${player||SESSION_ID}_${SITES[site].name}_R1vsR2_s${attempts.current.cmp}.png`}):'off';
+    const spng=LOG_URL?await svgToPng(schedBudgetSvg([[r1,'Round 1 schedule and budget'],[b,'Round 2 schedule and budget']],`${player||'Player'} · ${SITES[site].name} · Round 1 vs Round 2`)):'';
+    const res=LOG_URL?await sendLog({type:'compare',sheet:'Comparison',fields,schedPng:spng,schedName:`${player||SESSION_ID}_${SITES[site].name}_R1R2_schedule_s${attempts.current.cmp}.png`,resultsPng:rpng,resultsName:`${player||SESSION_ID}_${SITES[site].name}_results_s${attempts.current.cmp}.png`,lobPng:png,chartName:`${player||SESSION_ID}_${SITES[site].name}_R1vsR2_s${attempts.current.cmp}.png`}):'off';
     cmpSentSig.current=refl.plus+'|'+refl.delta;
     setLogStat(x=>({...x,cmp:res}));
   }
