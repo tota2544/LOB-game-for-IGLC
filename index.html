@@ -265,6 +265,10 @@ button.cchip{cursor:pointer}
 /* overlays */
 .ov{position:fixed; inset:0; background:rgba(15,25,30,.55); display:grid; place-items:center; z-index:20; padding:16px}
 .pidin{width:100%; font:inherit; font-size:20px; font-weight:800; padding:10px 12px; border:2px solid var(--line,#ccc); border-radius:12px; margin:6px 0 10px; text-align:center; letter-spacing:.04em}
+.pidgrid{display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:12px;text-align:left;font-weight:800;font-size:14px}
+.pidgrid .pidin{margin-top:4px}
+@media(max-width:520px){.pidgrid{grid-template-columns:1fr}}
+.pidout{margin:2px 0 4px;font-size:16px}
 .ibtn.pid{width:auto; padding:0 10px; font-size:13px; font-weight:800}
 .panel{background:var(--card); border-radius:24px; padding:22px; width:min(560px,100%); max-height:94vh; overflow:auto; box-shadow:0 20px 60px rgba(0,0,0,.35); display:grid; gap:14px; text-align:center; animation:rise .3s}
 .panel h3{margin:0; font-size:28px; font-weight:900}
@@ -1022,6 +1026,8 @@ setTimeout(()=>DL.flush(),1500);
 /* schedule → flat columns: exc_rate, exc_cost_per_day, exc_start, exc_end, exc_days, exc_cost … */
 function schedCols(rows){const o={};rows.forEach((r,i)=>{const k=CK[i];o[k+'_rate']=r.rate;o[k+'_cost_per_day']=r.dc;o[k+'_start']=r.S;o[k+'_end']=r.E;o[k+'_days']=r.E-r.S;o[k+'_cost']=Math.round((r.E-r.S)*r.dc);
     if(r.wait!=null)o[k+'_stopped_days']=+r.wait.toFixed(1);if(r.fleet)o[k+'_machines']=r.fleet});return o}
+/* the LOB as numbers, like the IGLC game's "LOB data" column */
+const lobData=(plan,rates,paths)=>JSON.stringify(CREWS.map((c,i)=>({crew:c.tag,start:plan[i].S,end:plan[i].S+plan[i].D,rate:rates[i],...(paths?{path:paths[i]}:{})})));
 /* LOB + bar chart picture of what the player built (drawn from the data, so it matches the plan exactly) */
 function snapPNG({title,sub,tMax,deadline,crews,hits}){
   const col=c=>{const m=/^var\((--[\w-]+)\)$/.exec(c||'');if(!m)return c;const v=getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim();return v||'#555'};
@@ -1361,7 +1367,7 @@ function M3({miss,done}){
         <Stats items={[{l:'🚛 Backfill start',v:'Day '+bS},{l:'Project',v:projDur(fix)+' days'},{l:'Crew cost',v:'$16,400'}]}/></div>
       {!clear&&<div className="banner bad">⚠ {fc.ft>=PJ-1e-6?'Same spot at 300 ft on day '+fmt(fc.t):'Lines cross at '+Math.round(fc.ft)+' ft on day '+fmt(fc.t)} — drag Backfill later</div>}
       {clear&&!ran&&<div className="banner good">✓ Backfill day {bS} → {bS+6}<span className="sp"/><button className="go" disabled={running} onClick={()=>{DL.inc('runs');DL.ev('run',{backfill_start:bS});setRunning(true);fclk.play(0,projEnd(fix))}}>▶ Run again</button></div>}
-      {clear&&ran&&<div className="banner good">✓ No collision · {projDur(fix)} days<span className="sp"/><button className="go" onClick={()=>{DL.mark('fix');DL.set({...schedCols(CREWS.map((c,i)=>({rate:c.rate,dc:c.cost,S:fix[i].S,E:fix[i].S+fix[i].D}))),duration:projDur(fix),direct:16400,total:loaded(16400).total});
+      {clear&&ran&&<div className="banner good">✓ No collision · {projDur(fix)} days<span className="sp"/><button className="go" onClick={()=>{DL.mark('fix');DL.set({...schedCols(CREWS.map((c,i)=>({rate:c.rate,dc:c.cost,S:fix[i].S,E:fix[i].S+fix[i].D}))),duration:projDur(fix),direct:16400,total:loaded(16400).total,'LOB data':lobData(fix,CREWS.map(c=>c.rate))});
         DL.snap(planShot('Training 3 · Final schedule',fix,CREWS.map(c=>c.rate)));done()}}>Finish ▶</button></div>}
       <Budget title={clear?'📋 Final schedule':'📋 Final schedule · fix the clash first'} done={true} plan={fix} rows={CREWS.map((c,i)=>({r:c.rate,c:c.cost,S:fix[i].S,D:fix[i].D,show:true}))}/>
     </>}
@@ -1480,6 +1486,7 @@ function Equip({miss,done,target,init=null}){
       {all&&ran&&(okD&&okC
         ?<div className="banner good">{target?'🎯 Both targets met · '+dur+' days · '+money(bid.total):'✓ Schedule complete · '+dur+' days'}<span className="sp"/><button className="go" onClick={()=>{if(!target)saveT5({sel,S});else saveT6({sel,S});
           DL.set({...schedCols(crew.map((c,i)=>({rate:c.r,dc:c.dc,S:S[i],E:S[i]+c.D,fleet:fleetTxt(sel[i])}))),duration:dur,direct:bid.direct,indirect:bid.ind,profit:bid.pr,total:bid.total,
+            'LOB data':lobData(plan,crew.map(c=>c.r)),
             ...(target?{target_days:target.days,target_cost:target.bid,met_days:okD,met_cost:okC,budget_left:target.bid-bid.total}:{})});
           DL.snap(planShot(target?'Training 6 · Hit the target':'Training 5 · Equipment',plan,crew.map(c=>c.r),deadline));done()}}>Finish ▶</button></div>
         :<div className="banner bad">✗ {!okD?dur+' days > '+target.days:''}{!okD&&!okC?' · ':''}{!okC?money(bid.total)+' > '+money(target.bid):''}<span className="sp"/><small>Undo a trade above</small><button className="go ghost sm" onClick={()=>{miss();setRan(false);clk.set(0)}}>OK</button></div>)}
@@ -1720,7 +1727,7 @@ function RiskLevel({evs,extraDays=0,done,lvl}){
     else if(nextT==null&&t>=endT-1e-6){setPh('end');r2log({lvl,ev:'end',total:res.total,dur:res.dur,late:res.late,pass:ok,picks:{...picks},borrows:{...borrows},extra,plan:P.sel});
       DL.set({...schedCols(CREWS.map((c,i)=>({rate:P.rate[i],dc:P.cost[i],S:res.S[i],E:res.E[i],wait:res.wait[i],fleet:fleetTxt(P.sel[i])}))),duration:res.dur,late_days:res.late,late_fee:res.ld,
         direct:res.b.direct,indirect:res.b.ind,profit:res.b.pr,fees:res.fees,total:res.total,budget_left:left,met_days:res.late===0,met_cost:ok,
-        ...Object.fromEntries(CK.map((k,i)=>[k+'_lob_path',res.tr[i].filter((z,n,a)=>n===0||n===a.length-1||Math.abs((z.x-a[n-1].x)-(a[n+1].x-z.x))>1e-6).map(z=>+z.t.toFixed(2)+':'+Math.round(z.x)).join(' ')]))});
+        'LOB data':lobData(CREWS.map((c,i)=>({S:res.S[i],D:res.E[i]-res.S[i]})),P.rate,res.tr.map(tr=>tr.filter((z,n,a)=>n===0||n===a.length-1||Math.abs((z.x-a[n-1].x)-(a[n+1].x-z.x))>1e-6).map(z=>+z.t.toFixed(2)+':'+Math.round(z.x)).join(' ')))});
       DL.snap(snapPNG({title:'Stage 2 · '+lvl+' · '+(ok?'within budget':'over budget'),sub:'Participant '+(DL.pid||'—')+' · attempt '+(DL.cur?DL.cur.attempt:'')+' · '+res.dur+' days · '+money(res.total)+' of '+money(budget),
         tMax,deadline:Math.min(...P.S)+P.deadline,crews:CREWS.map((c,i)=>({tag:c.tag,c:c.c,rate:P.rate[i],S:res.S[i],E:res.E[i],red:res.segs[i].filter(g=>g.red),
           pts:res.tr[i].map(z=>[z.t,z.x]),plan:[[P.S[i],0],[P.S[i]+PJ/P.rate[i],PJ]]}))}));
@@ -1856,11 +1863,19 @@ function Help({onClose}){return(<div className="ov"><div className="panel"><h3>H
   <div className="tip">Curious? Tap <span className="info static">i</span> next to any term to learn what it means and why it matters.</div>
   <div className="row"><button className="go" onClick={onClose}>Got it</button></div></div></div>)}
 
-function PidAsk({cur,onSave,onCancel}){const [v,setV]=useState(cur||'');const ok=v.trim().length>=2;
-  return(<div className="ov"><form className="panel" onSubmit={e=>{e.preventDefault();if(ok)onSave(v.trim())}}><h3>👤 Participant code</h3>
-    <p style={{textAlign:'left'}}>Type the code you were given (your SGID). It keeps your answers anonymous.</p>
-    <input className="pidin" autoFocus value={v} onChange={e=>setV(e.target.value)} placeholder="e.g. SG024" aria-label="Participant code" maxLength={32}/>
-    {cur&&v.trim()&&v.trim()!==cur&&<div className="tip">⚠ A new code starts the game from the beginning on this device.</div>}
+/* Player ID = FAVORITE COLOR in capitals + "_" + last 4 digits of their phone, e.g. RED_1234 (same as the IGLC game) */
+function PidAsk({cur,onSave,onCancel}){const m=/^([A-Z]+)_(\d{4})$/.exec(cur||'');
+  const [color,setColor]=useState(m?m[1]:''),[digits,setDigits]=useState(m?m[2]:'');
+  const ok=color.length>=2&&/^\d{4}$/.test(digits),id=ok?color+'_'+digits:'';
+  return(<div className="ov"><form className="panel" onSubmit={e=>{e.preventDefault();if(ok)onSave(id)}}><h3>👤 Your player ID</h3>
+    <div className="pidgrid">
+      <label>What's your favorite color?<input className="pidin" autoFocus value={color} placeholder="RED" autoComplete="off" aria-label="Favorite color"
+        onChange={e=>setColor(e.target.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,15))}/></label>
+      <label>Last 4 digits of your cellphone number<input className="pidin" value={digits} placeholder="1234" inputMode="numeric" autoComplete="off" aria-label="Last 4 digits"
+        onChange={e=>setDigits(e.target.value.replace(/\D/g,'').slice(0,4))}/></label></div>
+    <div className="pidout">Your player ID: <b>{ok?id:(color||'COLOR')+'_'+digits.padEnd(4,'•')}</b></div>
+    <div className="unitnote" style={{marginTop:2}}>Use the same answers every time. Your results are saved for the study under this ID.</div>
+    {cur&&ok&&id!==cur&&<div className="tip">⚠ A new ID starts the game from the beginning on this device.</div>}
     <div className="row">{onCancel&&<button type="button" className="go ghost" onClick={onCancel}>Cancel</button>}<button className="go" disabled={!ok}>Start ▶</button></div></form></div>)}
 function App({init}){
   const [prog,setProg]=useState(()=>init.prog||loadProg()||fresh());
