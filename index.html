@@ -1107,9 +1107,9 @@ function r2Tables(P,res,picks,borrows,budget){const sched=[];CREWS.forEach((c,i)
   return[{title:'Final schedule',head:['Crew','Rate','Dur','$/d','Start','End'],w:[400,120,90,110,110,110],rows:sched,note:'Crews are paid every day on site, including stopped and paused days.'},
     {title:'Final budget',w:[760,180],rows:bud}]}
 const col0=c=>{const m=/^var\((--[\w-]+)\)$/.exec(c||'');if(!m)return c;return getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim()||'#555'};
-/* tables as text for the Sheet cell "Schedule & budget" */
-const tablesTxt=T=>T.map(t=>t.title+'\n'+(t.head?t.head.join(' | ')+'\n':'')+t.rows.map(r=>r.c.map(v=>String(v).trim()).filter((v,i)=>v!==''||i===0).join(' | ')).join('\n')).join('\n\n');
-const planShot=(title,plan,rates,deadline,dcs)=>{const T=s1Tables(plan,rates,dcs);if(T.length)DL.set({'Schedule & budget':tablesTxt(T)});return snapPNG({title,sub:'Participant '+(DL.pid||'—')+' · '+new Date().toLocaleString(),deadline,tables:T,
+/* tables as data for the Sheet: the Apps Script writes them as a real table on the "Schedule & budget" tab and links the row to it */
+const tablesTxt=T=>JSON.stringify(T.map(t=>({title:t.title,head:t.head||null,rows:t.rows.map(r=>({k:r.k||'',c:r.c.map(v=>String(v==null?'':v).trim())}))})));
+const planShot=(title,plan,rates,deadline,dcs)=>{const T=s1Tables(plan,rates,dcs);if(T.length)DL.set({'Schedule & budget':tablesTxt(T)});return snapPNG({title,sub:'Participant '+(DL.pid||'—')+' · '+new Date().toLocaleString(),deadline,
   tMax:Math.max(16,Math.ceil(Math.max(...plan.map(p=>p.S+p.D)))+2),
   crews:CREWS.map((c,i)=>({tag:c.tag,c:c.c,rate:rates[i],S:plan[i].S,E:plan[i].S+plan[i].D,pts:[[plan[i].S,0],[plan[i].S+plan[i].D,PJ]]}))})};
 function Info({k}){const d=INFO[k];const ref=useRef(null);const [pos,setPos]=useState(null);
@@ -1866,7 +1866,7 @@ function RiskLevel({list,allow=1,done,lvl,cfg=null}){
       const xtra=cfg&&cfg.onEnd?cfg.onEnd(res,{left,ok,crossings:lg.current.cross||0}):null;if(xtra)DL.set(xtra);
       const T2=r2Tables(P,res,picks,borrows,budget);DL.set({'Schedule & budget':tablesTxt(T2)});
       const endD=Math.max(...res.E);const bandsP=fired.concat(pending).filter(e=>res.te[e]!=null).sort((a,b)=>res.te[a]-res.te[b]).map(e=>({a:res.te[e],b:Math.min(endD,res.te[e]+(picks[e]!=null?r2len(e,picks[e],borrows[e]):R2EV[e].len)),label:R2EV[e].id+' '+R2EV[e].name+(picks[e]!=null?' · '+R2EV[e].opts[picks[e]].k:'')}));
-      DL.snap(snapPNG({tables:T2,bands:bandsP,ylab:LEN===PJ?null:f=>f%100===0?(f/100)+' mi':null,title:(cfg?'Stage 3 · '+cfg.site:'Stage 2 · '+lvl)+' · '+(ok?'passes':'fails'),sub:'Participant '+(DL.pid||'—')+' · attempt '+(DL.cur?DL.cur.attempt:'')+' · '+res.dur+' days · '+money(res.total)+' of '+money(budget),
+      DL.snap(snapPNG({bands:bandsP,ylab:LEN===PJ?null:f=>f%100===0?(f/100)+' mi':null,title:(cfg?'Stage 3 · '+cfg.site:'Stage 2 · '+lvl)+' · '+(ok?'passes':'fails'),sub:'Participant '+(DL.pid||'—')+' · attempt '+(DL.cur?DL.cur.attempt:'')+' · '+res.dur+' days · '+money(res.total)+' of '+money(budget),
         tMax,deadline:Math.min(...P.S)+P.deadline,crews:CREWS.map((c,i)=>({tag:c.tag,c:c.c,rate:P.rate[i],S:res.S[i],E:res.E[i],red:res.segs[i].filter(g=>g.red),
           pts:resD.tr[i].map(z=>[z.t,z.x]),plan:[[P.S[i],0],[P.S[i]+LEN/P.rate[i],PJ]]}))}));
       DL.end(ok?'pass':'fail',{stars:xtra&&xtra.stars!=null?xtra.stars:ok?r2stars(left):0});if(ok)Snd.ok();else Snd.bad()}},[t,clk.run,ph]);
